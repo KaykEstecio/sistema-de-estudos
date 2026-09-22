@@ -2,11 +2,119 @@
 
 ## Estado de implementação
 
-Sprint 0 em andamento. S0-T01 a S0-T05 concluídas: estrutura inicial, ambiente
-Python, configuração por variáveis de ambiente e FastAPI com `/health`.
-Consulte a [execução do backend](backend/README.md).
-O backend responde com `{"status":"ok"}`; frontend e banco ainda não estão configurados.
-Próxima tarefa: S0-T06 — configurar PostgreSQL com Docker.
+Sprint 1 aberta para implementação de usuários e autenticação, conforme o
+[planejamento atual](docs/CURRENT_SPRINT.md). Primeira tarefa: model User e migration.
+
+Sprint 0 concluída: backend FastAPI, frontend React + TypeScript + Vite,
+PostgreSQL com Docker, SQLAlchemy, Alembic e comunicação via `/health`.
+Oito testes automatizados passaram. Ainda não existem funcionalidades de domínio.
+A primeira migration será criada quando houver alteração estrutural autorizada.
+
+## Executar localmente
+
+Requisitos: Python 3.12+, Node.js 22.12+ e Docker Desktop com engine Linux
+e Docker Compose. Validado no Windows com Python 3.12.10 e Node 24.14.1.
+Os comandos PowerShell abaixo partem da raiz do repositório.
+
+### Preparação inicial
+
+```powershell
+py -3.12 -m venv backend/.venv
+& backend/.venv/Scripts/python.exe -m pip install -r backend/requirements.txt
+npm --prefix frontend ci
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+if (-not (Test-Path backend/.env)) { Copy-Item backend/.env.example backend/.env }
+```
+
+Antes de iniciar, preencha `POSTGRES_PASSWORD` no `.env` da raiz e
+`DATABASE_URL` em `backend/.env` com as mesmas credenciais, banco e porta.
+Consulte a [configuração do backend](backend/README.md#configurar-sqlalchemy)
+para formato e codificação da URL. Use `CODETRACK_DEBUG=false`.
+Os exemplos não contêm credenciais reais; os arquivos `.env` não são versionados.
+
+### Iniciar os serviços
+
+Primeiro, inicie o banco:
+
+```powershell
+docker compose up -d --wait --wait-timeout 60
+```
+
+Em um terminal, inicie a API:
+
+```powershell
+& backend/.venv/Scripts/python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
+```
+
+Em outro terminal, inicie o frontend:
+
+```powershell
+npm --prefix frontend run dev
+```
+
+Abra <http://127.0.0.1:5173> (ou a porta informada pelo Vite).
+A página deve mostrar “Servidor disponível”. O proxy local encaminha `/health`
+à API na porta 8000. A documentação da API fica em <http://127.0.0.1:8000/docs>.
+O proxy de desenvolvimento não acompanha os arquivos estáticos de produção.
+
+### Conferir o ambiente
+
+```powershell
+& backend/.venv/Scripts/python.exe -m pytest backend/tests -q
+& backend/.venv/Scripts/python.exe -m alembic -c backend/alembic.ini check
+npm --prefix frontend run build
+Push-Location backend
+& .venv/Scripts/python.exe -m app.database.check
+Pop-Location
+```
+
+Esperado: 8 testes passando, Alembic sem novas operações, build concluído e
+`SELECT 1` executado pelo backend. Os testes HTTP dispensam Docker; as verificações
+de Alembic e conexão precisam do PostgreSQL. `/health` verifica somente a API.
+Os 8 testes também passaram com `-W error`, sem avisos de depreciação.
+
+Para encerrar API e frontend, use Ctrl+C nos respectivos terminais.
+Para parar o banco mantendo os dados, use `docker compose stop`.
+Instruções adicionais: [backend](backend/README.md) e [frontend](frontend/README.md),
+incluindo variantes Linux/macOS, ainda não executadas neste projeto.
+
+## PostgreSQL local com Docker
+
+Requisito: Docker Desktop em execução com engine Linux e Docker Compose.
+Os comandos abaixo partem da raiz do repositório.
+
+O Compose usa a imagem oficial `postgres:17-alpine`, mantendo a versão principal
+17, um volume nomeado para persistência e publicação somente em `127.0.0.1`.
+
+Na primeira configuração, copie `.env.example` para `.env` somente se ainda
+não existir. No PowerShell:
+
+```powershell
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+```
+
+Preencha `POSTGRES_PASSWORD` no `.env` local com uma senha própria. O exemplo
+deixa a senha vazia propositalmente: Compose recusa iniciar sem esse valor.
+O `.env` da raiz configura Docker; `backend/.env` configura FastAPI.
+Ambos estão ignorados pelo Git. Não exiba a configuração resolvida com segredos.
+
+```powershell
+docker compose config --quiet
+docker compose up -d --wait --wait-timeout 60
+docker compose ps
+docker compose exec db sh -c 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+```
+
+Os mesmos comandos Docker funcionam no Linux/macOS. Caso a porta 5432 esteja
+ocupada, ajuste `POSTGRES_PORT` no `.env` antes de iniciar.
+Use `docker compose stop` para parar e `docker compose up -d --wait` para retomar.
+`docker compose down` remove containers e rede, preservando o volume.
+Não use `down -v` para parar: isso apaga os dados persistidos.
+
+As variáveis POSTGRES_DB, POSTGRES_USER e POSTGRES_PASSWORD inicializam somente
+um volume vazio. Alterar o `.env` depois não modifica credenciais já criadas.
+O usuário configurado é o administrador do banco de desenvolvimento local.
+A conexão SQLAlchemy do backend está configurada e foi validada na S0-T08.
 
 Plataforma adaptativa para aprendizagem e prática de programação.
 

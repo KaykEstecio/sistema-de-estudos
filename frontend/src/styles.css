@@ -1,0 +1,20 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #172b35;
+  background: #ffffff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; }
+main { max-width: 720px; margin: 0 auto; padding: clamp(48px, 12vh, 120px) 24px; }
+h1 { margin: 0 0 20px; font-size: clamp(36px, 8vw, 56px); letter-spacing: -0.04em; }
+p { font-size: 18px; line-height: 1.6; }
+.note { color: #52616b; font-size: 16px; }
+section { margin-top: 40px; border-top: 1px solid #dce2e5; padding-top: 24px; }
+h2 { font-size: 20px; margin: 0; }
+button { font: inherit; padding: 10px 16px; color: #fff; background: #172b35; border: 0; border-radius: 6px; cursor: pointer; }
+button:disabled { opacity: 0.5; cursor: wait; }
+button:focus-visible { outline: 3px solid #297ea3; outline-offset: 3px; }

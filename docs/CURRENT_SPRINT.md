@@ -2,301 +2,128 @@
 
 ## Sprint atual
 
-```text
-SPRINT 0 — FOUNDATION
-```
-
----
-
-# Objetivo
-
-Criar uma fundação técnica limpa para o CodeTrack.
-
-Ao final da Sprint 0 deverá ser possível executar:
-
-```text
-Frontend
-Backend
-Database
-```
-
-de forma previsível.
-
----
-
-# Escopo permitido
-
-Implementar:
-
-* estrutura inicial do monorepo;
-* backend FastAPI;
-* frontend React + TypeScript;
-* Vite;
-* PostgreSQL;
-* Docker;
-* SQLAlchemy;
-* Alembic;
-* configuração de ambiente;
-* `.env`;
-* `.env.example`;
-* `.gitignore`;
-* endpoint `/health`;
-* documentação inicial.
-
----
-
-# Fora do escopo
-
-Não implementar durante esta Sprint:
-
-```text
-User
-Auth
-JWT
-
-Category
-Skill
-UserSkill
-
-Onboarding
-Assessment
-
-Track
-Challenge
-Attempt
-
-Evaluation
-Progress
-Recommendation
-
-Dashboard funcional
-```
-
----
-
-# Estrutura alvo
-
-```text
-codetrack/
-
-├── AGENTS.md
-├── README.md
-
-├── docs/
-│   ├── PROJECT_SPEC.md
-│   ├── ARCHITECTURE.md
-│   ├── BUSINESS_RULES.md
-│   └── CURRENT_SPRINT.md
-
-├── backend/
-
-└── frontend/
-```
-
----
-
-# Backend mínimo esperado
-
-```text
-backend/
-
-app/
-├── main.py
-├── core/
-└── database/
-
-tests/
-
-alembic/
-
-.env.example
-```
-
-Não é obrigatório criar módulos futuros agora.
-
----
-
-# Primeiras tarefas
-
-## S0-T01
-
-Criar estrutura inicial do repositório.
-
-Status: concluída. Documentação organizada, Git inicializado e diretórios
-`backend/` e `frontend/` criados com documentação de seu estado inicial.
-
----
-
-## S0-T02
-
-Inicializar backend Python.
-
-Status: concluída. Ambiente local isolado com Python 3.12.10, pacote `app`
-e dependências FastAPI/Uvicorn registradas em `backend/requirements.txt`.
-Validação no Windows: instalação pelo arquivo de dependências, `pip check`,
-importação de `app`, FastAPI, Pydantic e Uvicorn e isolamento do ambiente.
-
----
-
-## S0-T03
-
-Criar aplicação FastAPI mínima.
-
-Status: concluída. Ponto de entrada `backend/app/main.py` com aplicação FastAPI
-e título CodeTrack; comandos de execução documentados no README do backend.
-Validação no Windows: Uvicorn iniciado em porta local 8765, `/docs` e
-`/openapi.json` com HTTP 200, título correto e contrato sem rotas próprias.
-`/` e `/health` retornaram 404, conforme esta etapa. Servidor de validação encerrado.
-
----
-
-## S0-T04
-
-Status: concluída. `GET /health` implementado em `backend/app/main.py`, sem
-dependências externas. Validação HTTP local: 200, conteúdo `application/json`,
-JSON exato `{"status":"ok"}`, presença no OpenAPI e POST rejeitado com 405.
-Servidor de validação encerrado. Teste persistente com pytest permanece na S0-T13.
-
-Criar endpoint:
-
-```text
-GET /health
-```
-
-Resposta esperada:
-
-```json
-{
-  "status": "ok"
-}
-```
-
----
-
-## S0-T05
-
-Configurar variáveis de ambiente.
-
-Status: concluída. `app/core/config.py` carrega e valida APP_NAME, ENVIRONMENT
-e DEBUG com Pydantic Settings. Criados `backend/.env.example` e `.env` local
-ignorado pelo Git; FastAPI utiliza o título e a depuração configurados.
-Validados padrões, leitura de arquivo, precedência do processo, entradas inválidas,
-bloqueio de DEBUG em production, integração com a aplicação e `pip check`.
-Próxima tarefa: S0-T06 — configurar PostgreSQL com Docker.
-
----
-
-## S0-T06
-
-Configurar PostgreSQL com Docker.
-
----
-
-## S0-T07
-
-Configurar SQLAlchemy.
-
----
-
-## S0-T08
-
-Testar conexão com banco.
-
----
-
-## S0-T09
-
-Configurar Alembic.
-
----
-
-## S0-T10
-
-Criar primeira migration técnica se necessário.
-
----
-
-## S0-T11
-
-Inicializar frontend React + TypeScript + Vite.
-
----
-
-## S0-T12
-
-Configurar comunicação básica do frontend com backend.
-
-Não implementar telas de negócio.
-
----
-
-## S0-T13
-
-Adicionar teste do `/health`.
-
----
-
-## S0-T14
-
-Atualizar README com execução local.
-
----
-
-# Definition of Done
-
-Sprint 0 estará concluída quando:
-
-* backend iniciar sem erro;
-* frontend iniciar sem erro;
-* PostgreSQL estiver disponível;
-* backend conseguir conectar ao PostgreSQL;
-* Alembic estiver configurado;
-* `/health` responder corretamente;
-* variáveis sensíveis não estiverem versionadas;
-* `.env.example` existir;
-* teste básico funcionar;
-* documentação de execução estiver atualizada.
-
----
-
-# Critério de saída
-
-Somente após cumprir o Definition of Done avançar para:
-
-```text
 SPRINT 1 — USER + AUTH
-```
 
----
+Status: aberta para implementação incremental; tarefas de código pendentes.
+Fundação concluída e evidências anteriores: [Sprint 0](SPRINT_0.md).
 
-# Próxima Sprint
+## Objetivo e escopo
 
-Sprint 1 deverá implementar:
+Permitir cadastro, login e consulta da identidade autenticada na API.
+Seguir ARCHITECTURE.md e RN01–RN04, RN53–RN55 de BUSINESS_RULES.md.
 
-```text
-User
-Register
-Password Hash
-Login
-JWT
-GET /me
-```
+- Model User e migration Alembic em PostgreSQL.
+- Schemas Pydantic, repository e services de usuários/autenticação.
+- Hash de senha, login, emissão e validação de access token JWT.
+- POST /api/v1/auth/register, POST /api/v1/auth/login e GET /api/v1/auth/me.
+- Autorização no backend com roles STUDENT e ADMIN.
+- Testes críticos e documentação dos contratos e variáveis necessárias.
 
-Não implementar Sprint 1 antecipadamente.
+Cadastro público cria STUDENT, sem permitir promoção a ADMIN pelo payload.
+Criar camadas somente quando utilizadas; manter /health independente do banco.
+
+## FUTURO — fora do escopo
+
+Categories, Skills, UserSkill, onboarding funcional, assessment, tracks,
+challenges, attempts, evaluation, recommendation e dashboard funcional.
+Refresh token, recuperação de senha, confirmação de e-mail, login social,
+MFA, painel administrativo e telas de autenticação não fazem parte deste recorte.
+O frontend atual continua como verificação de conectividade.
+
+## Sequência de tarefas
+
+Todas pendentes. Executar uma tarefa por vez, validar e registrar o resultado.
+
+### S1-T01 — Model User e migration
+
+Criar model tipado no módulo users e registrar metadados no Alembic.
+Usar id, name, email, password_hash, role, onboarding_completed, created_at
+ e updated_at conforme a arquitetura. Garantir e-mail único, roles válidas
+ e onboarding_completed inicialmente falso.
+Validar aplicação e reversão da migration em banco de teste descartável.
+Não usar dados de desenvolvimento para testes destrutivos.
+
+### S1-T02 — Schemas e persistência
+
+Definir schemas públicos e repository para cadastro e consulta de usuário.
+Não retornar password_hash. Documentar validação de nome/e-mail e duplicidade.
+
+### S1-T03 — Hash de senha
+
+Implementar hash e verificação em core/security.py com biblioteca mantida,
+justificando dependência e parâmetros. Não modificar a senha antes do hash.
+Testar senha correta, incorreta e armazenamento sem texto puro.
+
+### S1-T04 — Cadastro
+
+Implementar serviços e router simples para POST /api/v1/auth/register.
+Retornar 201, tratar duplicidade com 409 e entrada inválida com 422.
+Garantir unicidade inclusive diante de concorrência e impedir atribuição pública de ADMIN.
+
+### S1-T05 — Configuração e utilitários JWT
+
+Definir e documentar algoritmo, validade e claims antes de usá-los.
+Segredo somente no ambiente; exemplo sem valor real.
+Testar assinatura inválida, expiração e claims ausentes/inválidos.
+
+### S1-T06 — Login
+
+Implementar POST /api/v1/auth/login com validação de credenciais e access token.
+Documentar entrada e resposta. Falhas retornam 401 sem diferenciar usuário
+inexistente de senha errada. Não registrar senha, hash ou token em logs.
+
+### S1-T07 — Identidade e permissões
+
+Implementar dependência de autenticação e GET /api/v1/auth/me.
+Validar token e existência do usuário no backend, com resposta pública.
+Testar token ausente, inválido, expirado e usuário inexistente.
+Validar roles sem criar endpoints administrativos futuros.
+
+### S1-T08 — Integração e documentação
+
+Testar cadastro → login → me em PostgreSQL de teste isolado, duplicidade,
+validação, roles e ausência de password_hash nas respostas.
+Preservar regressões da Sprint 0 e atualizar instruções e contratos.
+
+## Decisões a registrar durante a implementação
+
+- S1-T01/T02: tipo de identificador, tamanhos e normalização/comparação de e-mail.
+- S1-T03/T04: política e limites de senha, algoritmo de hash e biblioteca.
+- S1-T05/T06: biblioteca JWT, algoritmo, validade, claims e contrato de login.
+
+Esses detalhes ainda não estão fixados. Documentar decisões justificadas no
+arquivo responsável, sem apresentá-las como requisitos anteriores.
+Mudanças significativas de arquitetura seguem as regras de AGENTS.md.
+
+## Definition of Done
+
+- [ ] Model User e migration validados em PostgreSQL.
+- [ ] E-mail único na persistência, com duplicidade tratada.
+- [ ] Senha somente como hash; dados internos ausentes das respostas.
+- [ ] Cadastro público cria apenas STUDENT.
+- [ ] Login retorna JWT válido; credenciais inválidas retornam 401.
+- [ ] Assinatura, expiração e identidade verificadas no backend.
+- [ ] GET /api/v1/auth/me retorna somente o usuário autenticado.
+- [ ] Autorização e falhas críticas possuem testes.
+- [ ] Secrets permanecem no ambiente; exemplos sem credenciais reais.
+- [ ] Testes da Sprint e regressões da fundação passam.
+- [ ] Contratos, decisões e instruções atualizados.
 
 ## Active AI Skills
 
-Carregar somente as skills ativas pertinentes à tarefa, a partir de `.ai/skills/`.
-Estes arquivos são guias locais do projeto; esta lista define sua ativação por Sprint.
-A ativação não autoriza funcionalidades fora do escopo atual.
+Carregar somente as pertinentes à tarefa:
 
 - [backend-architecture](../.ai/skills/backend-architecture.md)
 - [database-modeling](../.ai/skills/database-modeling.md)
+- [api-design](../.ai/skills/api-design.md)
+- [security](../.ai/skills/security.md)
 - [testing](../.ai/skills/testing.md)
 - [debugging](../.ai/skills/debugging.md)
 - [documentation](../.ai/skills/documentation.md)
 
-FUTURO — inativas na Sprint 0: `security`, `api-design`, `code-review`,
-`learning-evaluation`, `recommendation-engine`, `adaptive-learning` e `challenge-design`.
-Sua existência não amplia a Sprint. As regras globais de segurança de `AGENTS.md`
-continuam obrigatórias mesmo com a skill `security` inativa.
+FUTURO — inativas: code-review, learning-evaluation, recommendation-engine,
+adaptive-learning e challenge-design. Ativação não amplia o escopo.
+
+## Próxima tarefa
+
+S1-T01 — criar Model User e a migration correspondente.

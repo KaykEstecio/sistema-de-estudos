@@ -3,8 +3,10 @@
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import make_url
+from sqlalchemy.exc import ArgumentError
 
 
 class Settings(BaseSettings):
@@ -17,10 +19,22 @@ class Settings(BaseSettings):
 
     app_name: str = Field(default="CodeTrack", min_length=1)
     environment: Literal["development", "test", "production"] = "development"
-    debug: bool = False
+    debug: bool = Field(default=False, validation_alias="CODETRACK_DEBUG")
+    database_url: SecretStr
+
+    @field_validator("database_url")
+    @classmethod
+    def validate_database_url(cls, value: SecretStr) -> SecretStr:
+        try:
+            url = make_url(value.get_secret_value())
+        except (ArgumentError, ValueError):
+            raise ValueError("DATABASE_URL deve ser uma URL PostgreSQL válida.") from None
+        if url.drivername != "postgresql+psycopg" or not url.host or not url.database:
+            raise ValueError("DATABASE_URL exige postgresql+psycopg, host e banco.")
+        return value
 
     @model_validator(mode="after")
     def validate_production_debug(self) -> Self:
         if self.environment == "production" and self.debug:
-            raise ValueError("DEBUG deve ser false em production.")
+            raise ValueError("CODETRACK_DEBUG deve ser false em production.")
         return self
