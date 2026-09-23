@@ -4,11 +4,23 @@
 
 E-mail deve ser único.
 
+Decisão S1-T01: a comparação de unicidade ignora maiúsculas/minúsculas em
+todo o endereço, para impedir contas duplicadas por variações de caixa.
+Decisão S1-T02: remover espaços externos, validar o endereço com EmailStr e
+armazenar o e-mail normalizado em minúsculas. Não remover pontos ou sufixos
+de provedores. A validação de formato não confirma posse da caixa de e-mail.
+
 ---
 
 ## RN02 — Senha
 
 Senha nunca será armazenada em texto puro.
+
+Decisão S1-T04: cadastro aceita de 15 a 128 caracteres, incluindo espaços e
+Unicode, sem exigir combinações de maiúsculas, números ou símbolos. Não fazer
+trim, normalização ou truncamento. O mínimo considera ausência de MFA; o máximo
+limita a entrada mantendo suporte a frases longas. Referência:
+[OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html).
 
 ---
 
@@ -34,6 +46,21 @@ Usuários STUDENT não podem alterar conteúdos administrativos.
 ## RN05
 
 Cada Skill pertence a uma Category.
+
+Decisões S2-T01 — catálogo (contratos definidos; implementação nas próximas tarefas):
+
+- Categorias podem existir sem skills; skill exige categoria existente.
+- ADMIN cria/edita categorias e skills e pode mover uma skill para outra categoria.
+  STUDENT apenas consulta. Todas as consultas exigem autenticação.
+- Slug identifica o recurso: único entre categorias e, separadamente, único
+  entre todas as skills, inclusive inativas. Nomes não são únicos. Alterar nome
+  não altera slug automaticamente; ADMIN pode editar o slug explicitamente.
+- Skill inicia ativa, salvo criação explicitamente inativa por ADMIN.
+  STUDENT só vê skills ativas; detalhe inativo responde como não encontrado.
+  ADMIN pode consultar ativas e inativas. Desativação mantém o registro e vínculo.
+- Categorias permanecem visíveis mesmo vazias ou sem skills ativas.
+  Não há desativação de categoria nem exclusão física nesta Sprint.
+- Nenhuma operação de catálogo cria UserSkill, altera score ou executa recomendação.
 
 ---
 

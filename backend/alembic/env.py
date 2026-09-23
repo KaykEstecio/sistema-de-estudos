@@ -6,8 +6,9 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import Settings
 from app.database.base import Base
+from app.modules.users.models import User  # Registra o model nos metadados.
 
-# Importar aqui os módulos de models quando forem implementados nas suas Sprints.
+# Adicionar imports de novos models conforme forem implementados.
 target_metadata = Base.metadata
 
 

@@ -101,7 +101,9 @@ coordenado pelo service responsável pela operação quando houver regras de dom
 
 SQLAlchemy 2 e Psycopg 3 foram adicionados para persistência PostgreSQL;
 o pacote binário do driver permite instalação local sem compilação.
-Não há criação automática de tabelas, models de domínio ou migrations nesta etapa.
+Não há criação automática de tabelas. O model User e a migration
+`0001_create_users` foram adicionados na S1-T01; aplique `alembic upgrade head`
+com os comandos abaixo antes de usar a persistência de usuários.
 O engine só conecta quando uma operação exige acesso ao banco; `/health`
 continua sem consultar PostgreSQL, embora a configuração precise ser válida.
 
@@ -176,7 +178,7 @@ Quando houver alteração de schema autorizada pela Sprint:
 & backend/.venv/Scripts/python.exe -m alembic -c backend/alembic.ini upgrade head
 ```
 
-Não há migrations de domínio nesta etapa. Validação S0-T09: `current` acessou
+Validação histórica S0-T09, antes do model User: `current` acessou
 o PostgreSQL, `check` não detectou alterações e a geração offline produziu
 apenas uma transação vazia. `pip check` passou.
 
@@ -243,3 +245,104 @@ Para validar também a ausência de avisos:
 ```
 
 Consulte [a Sprint atual](../docs/CURRENT_SPRINT.md) antes de implementar.
+
+## Teste de integração da migration User
+
+O teste `tests/test_user_migration.py` é opt-in. Defina `CODETRACK_TEST_ADMIN_URL`
+no ambiente local com uma conexão PostgreSQL de teste cujo usuário possa criar
+e remover bancos. Não publique o valor. Execute o mesmo comando pytest acima.
+Sem essa variável, o teste é pulado e os testes independentes continuam rodando.
+
+O teste cria um banco novo `codetrack_test_<uuid>`, aplica a migration, verifica
+defaults/constraints, reverte e reaplica, e remove somente esse banco criado
+pelo próprio teste. O banco da conexão administrativa não é usado para tabelas de teste.
+Validação S1-T01: 9 testes passaram com `-W error`, incluindo integração PostgreSQL.
+Banco local atualizado para `0001_create_users`; `alembic check` sem diferenças.
+
+Na S1-T02, a integração também verifica UserRepository (consulta por ID/e-mail,
+duplicidade e rollback sem commit implícito). Testes de schemas verificam
+normalização, campos inválidos/privilegiados, preservação da senha e resposta
+sem hash. Resultado da S1-T02 com PostgreSQL de teste: 18 testes passaram.
+EmailStr requer a dependência email-validator, adicionada ao requirements.txt.
+
+## Hash de senhas
+
+`app/core/security.py` oferece hash_password e verify_password com argon2-cffi.
+Argon2id usa salt aleatório por hash; parâmetros estão documentados na arquitetura.
+As funções não normalizam nem truncam a senha e não fazem persistência.
+O endpoint de cadastro e sua política inicial de senha foram implementados na S1-T04.
+
+Resultado S1-T03: 25 testes passaram com `-W error`, incluindo integração
+PostgreSQL. Sem CODETRACK_TEST_ADMIN_URL, 24 testes rodam e 1 é pulado.
+
+## Cadastro (S1-T04)
+
+`POST /api/v1/auth/register` recebe name, email e password em JSON.
+Senha: 15 a 128 caracteres, preservando espaços e Unicode. Retorna 201 com
+usuário STUDENT, onboarding_completed=false e sem credenciais. E-mail duplicado
+retorna 409; entrada inválida ou campos extras retornam 422 sem ecoar valores.
+Login e JWT foram implementados nas S1-T05/S1-T06.
+
+Resultado S1-T04: 32 testes passaram com `-W error`. A fixture em conftest.py
+cria bancos descartáveis também para cadastro HTTP e concorrência. Sem
+CODETRACK_TEST_ADMIN_URL, os três testes PostgreSQL são pulados.
+
+## Utilitários JWT (S1-T05)
+
+`app/core/tokens.py` fornece create_access_token(user_id, settings) e
+decode_access_token(token, settings), que retorna o ID validado ou levanta
+InvalidAccessToken com mensagem genérica. Use JWTSettings de core/config.py.
+Login usa esses utilitários desde a S1-T06; autenticação de rotas desde S1-T07.
+
+Configure JWT_SECRET_KEY no ambiente ou backend/.env com segredo aleatório de
+pelo menos 32 bytes. O arquivo .env.example mantém o valor vazio. Para gerar
+diretamente no arquivo local sem imprimir o segredo, execute da raiz:
+
+```powershell
+& backend/.venv/Scripts/python.exe -c "import secrets; from dotenv import set_key; set_key('backend/.env', 'JWT_SECRET_KEY', secrets.token_urlsafe(32))"
+```
+
+Esse comando substitui a chave anterior, invalidando tokens emitidos com ela.
+JWT_ACCESS_TOKEN_MINUTES é opcional (padrão 30, intervalo 1–120).
+Algoritmo, emissor, destinatário e claims estão definidos na arquitetura.
+Não compartilhe o .env nem tokens reais. Migrations e /health não usam JWTSettings.
+
+Resultado S1-T05: 70 testes passaram com `-W error`, incluindo os três testes
+PostgreSQL. Testes JWT usam segredos efêmeros e não dependem do .env local.
+
+## Login (S1-T06)
+
+`POST /api/v1/auth/login` recebe JSON com email e password. Retorna 200 com
+access_token, token_type="bearer" e expires_in (segundos). JWT_SECRET_KEY deve
+estar configurada conforme a seção anterior. A resposta impede armazenamento
+em cache. Não use credenciais reais em exemplos, logs ou arquivos versionados.
+
+E-mail inexistente e senha incorreta retornam o mesmo 401; entrada inválida ou
+campos extras retornam 422. A senha não sofre trim ou normalização. Login aceita
+1–128 caracteres; cadastro continua exigindo 15–128.
+
+Validação S1-T06: 72 testes passaram com `-W error`, incluindo quatro testes
+PostgreSQL opt-in. Sem CODETRACK_TEST_ADMIN_URL, esses quatro são pulados.
+
+## Identidade e permissões (S1-T07)
+
+`GET /api/v1/auth/me` recebe Authorization: Bearer <access_token> e retorna
+somente os campos públicos do usuário autenticado. Token ausente, inválido,
+expirado ou usuário removido/inexistente retornam 401. Role é consultada no
+banco a cada requisição; nunca depende de autorização enviada pelo frontend.
+
+get_current_user e require_admin ficam em users/dependencies.py. A regra de
+ADMIN fica em AuthService; STUDENT recebe 403 quando essa permissão é exigida.
+Não há rota administrativa pública nesta Sprint.
+
+Validação S1-T07: 73 testes passaram com `-W error`, incluindo cinco testes
+PostgreSQL opt-in. Sem CODETRACK_TEST_ADMIN_URL, esses cinco são pulados.
+
+## Fechamento da Sprint 1
+
+S1-T08 validada com 73 testes passando (`-W error`), PostgreSQL descartável,
+`pip check` sem conflitos e `alembic check` sem diferenças no banco local.
+Build/typecheck do frontend também passaram. A integração cobre duas contas
+com identidades separadas, duplicidade, validação, permissões e remoção de usuário.
+Erros 422 não ecoam valores nem nomes de campos extras fornecidos pelo cliente.
+O frontend mantém apenas a verificação de conectividade; não há telas de login.

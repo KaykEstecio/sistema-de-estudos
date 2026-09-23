@@ -1,7 +1,7 @@
 # Revisões do banco
 
 Esta pasta recebe migrations Alembic quando houver alterações estruturais
-autorizadas pela Sprint. Ainda não há revisões ou models de domínio.
+autorizadas pela Sprint. `0001_create_users` cria a tabela de usuários na Sprint 1.
 
 Revise o código gerado antes de aplicar: autogenerate não substitui a revisão
 de constraints, integridade e preservação de dados. Não crie revisões vazias

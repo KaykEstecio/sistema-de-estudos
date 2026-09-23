@@ -2,13 +2,16 @@
 
 ## Estado de implementação
 
-Sprint 1 aberta para implementação de usuários e autenticação, conforme o
-[planejamento atual](docs/CURRENT_SPRINT.md). Primeira tarefa: model User e migration.
+Sprint 1 concluída: cadastro, login JWT, identidade autenticada e verificação
+de permissões no backend. Evidências no [fechamento da Sprint 1](docs/SPRINT_1.md).
+Sprint 2 — Categories + Skills com contratos definidos (S2-T01); models e API
+do catálogo ainda não implementados, conforme o
+[planejamento atual](docs/CURRENT_SPRINT.md).
 
 Sprint 0 concluída: backend FastAPI, frontend React + TypeScript + Vite,
 PostgreSQL com Docker, SQLAlchemy, Alembic e comunicação via `/health`.
-Oito testes automatizados passaram. Ainda não existem funcionalidades de domínio.
-A primeira migration será criada quando houver alteração estrutural autorizada.
+A migration inicial cria a tabela users. A interface continua como verificação
+de conectividade; telas de autenticação e funcionalidades de aprendizagem são FUTURO.
 
 ## Executar localmente
 
@@ -30,6 +33,8 @@ Antes de iniciar, preencha `POSTGRES_PASSWORD` no `.env` da raiz e
 `DATABASE_URL` em `backend/.env` com as mesmas credenciais, banco e porta.
 Consulte a [configuração do backend](backend/README.md#configurar-sqlalchemy)
 para formato e codificação da URL. Use `CODETRACK_DEBUG=false`.
+Configure também `JWT_SECRET_KEY` com um segredo aleatório no ambiente ou
+`backend/.env`, conforme [utilitários JWT](backend/README.md#utilitários-jwt-s1-t05).
 Os exemplos não contêm credenciais reais; os arquivos `.env` não são versionados.
 
 ### Iniciar os serviços
@@ -38,6 +43,7 @@ Primeiro, inicie o banco:
 
 ```powershell
 docker compose up -d --wait --wait-timeout 60
+& backend/.venv/Scripts/python.exe -m alembic -c backend/alembic.ini upgrade head
 ```
 
 Em um terminal, inicie a API:
@@ -68,10 +74,12 @@ Push-Location backend
 Pop-Location
 ```
 
-Esperado: 8 testes passando, Alembic sem novas operações, build concluído e
-`SELECT 1` executado pelo backend. Os testes HTTP dispensam Docker; as verificações
-de Alembic e conexão precisam do PostgreSQL. `/health` verifica somente a API.
-Os 8 testes também passaram com `-W error`, sem avisos de depreciação.
+Com CODETRACK_TEST_ADMIN_URL configurada, 73 testes passam, incluindo cinco
+testes PostgreSQL que criam e removem bancos descartáveis. Sem essa variável,
+esses cinco são pulados. Consulte [testes do backend](backend/README.md).
+Alembic deve indicar ausência de novas operações e o build deve concluir.
+`/health` não consulta o banco. Na conclusão da Sprint 1, os 73 testes passaram
+com `-W error`; Alembic, dependências e build também foram validados.
 
 Para encerrar API e frontend, use Ctrl+C nos respectivos terminais.
 Para parar o banco mantendo os dados, use `docker compose stop`.
