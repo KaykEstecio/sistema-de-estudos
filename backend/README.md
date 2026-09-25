@@ -340,9 +340,448 @@ PostgreSQL opt-in. Sem CODETRACK_TEST_ADMIN_URL, esses cinco são pulados.
 
 ## Fechamento da Sprint 1
 
+Histórico de validação da Sprint 1; estado mais recente na seção Sprint 2 abaixo.
+
 S1-T08 validada com 73 testes passando (`-W error`), PostgreSQL descartável,
 `pip check` sem conflitos e `alembic check` sem diferenças no banco local.
 Build/typecheck do frontend também passaram. A integração cobre duas contas
 com identidades separadas, duplicidade, validação, permissões e remoção de usuário.
 Erros 422 não ecoam valores nem nomes de campos extras fornecidos pelo cliente.
 O frontend mantém apenas a verificação de conectividade; não há telas de login.
+
+## Sprint 2 — persistência do catálogo
+
+Migration 0002_create_catalog adiciona categories e skills, com vínculo obrigatório,
+restrição de exclusão da categoria referenciada, slugs únicos/validados e ativação
+padrão. Downgrade desta revisão remove apenas catálogo, preservando users.
+Não há seed nem endpoints de catálogo nesta etapa.
+
+S2-T02: 74 testes passaram com `-W error`, incluindo seis testes PostgreSQL
+opt-in. Migration aplicada ao banco local; alembic check e pip check passaram.
+
+Nesta validação, o .venv original estava em Python 3.14 com pydantic_core
+incompatível. Foi preservado, e um ambiente separado Python 3.12.10 foi criado:
+
+```powershell
+py -3.12 -m venv backend/.validation/.venv
+& backend/.validation/.venv/Scripts/python.exe -m pip install -r backend/requirements.txt
+& backend/.validation/.venv/Scripts/python.exe -m pytest backend/tests -q -W error
+```
+
+Configure CODETRACK_TEST_ADMIN_URL para incluir os seis testes de banco.
+Correção em 24/09/2026: backend/.venv recriado com Python 3.12.10 e as versões
+fixadas em requirements.txt. O ambiente incompatível foi preservado em
+backend/.validation/backup-<data-hora>/.venv, ignorado pelo Git. Não é mais
+necessário usar o ambiente alternativo: os comandos normais deste guia voltaram
+a funcionar. Imports nativos, 74 testes com `-W error`, pip check e alembic check
+passaram no .venv principal. Se houver terminal com ambiente antigo ativado,
+feche-o e abra outro; no editor, selecione backend/.venv/Scripts/python.exe.
+
+Ao recriar ambientes, use explicitamente `py -3.12 -m venv` em diretório novo;
+não reutilize pacotes binários de um ambiente criado com outra versão de Python.
+
+### Schemas e repositories do catálogo (S2-T03)
+
+Módulos categories/skills possuem contratos de criação, PATCH, leitura e páginas.
+PATCH preserva campos omitidos e aceita null somente para limpar description.
+Repositories recebem dados validados, fazem flush e deixam commit/rollback ao
+service. Consultas usam filtros, contagem e paginação no banco com ordem por ID.
+Ainda não há rotas de catálogo ou autorização aplicada a essas consultas.
+
+Validação: 108 testes passaram com `-W error` no backend/.venv principal,
+incluindo sete testes PostgreSQL opt-in. Cobertura inclui limites de entrada,
+normalização, campos extras, filtros de ativos/inativos, rollback de criação e
+edição, falha de unicidade e leitura após commit em nova sessão.
+
+### Consulta autenticada do catálogo (S2-T04)
+
+GET /api/v1/categories, /categories/{id}, /skills e /skills/{id}, todos sob
+o prefixo /api/v1, exigem Authorization: Bearer <token>. Listagens aceitam
+limit (1–100, padrão 20) e offset (>=0); retornam items/limit/offset/total.
+Skills também aceita category_id e is_active. STUDENT vê somente ativas;
+is_active=false retorna 403 e detalhe inativo retorna 404. ADMIN vê ambas.
+Categorias vazias permanecem visíveis. Parâmetros desconhecidos retornam 422.
+POST/PATCH do catálogo implementados na S2-T05, conforme seção abaixo.
+
+Validação: 109 testes passaram com `-W error`, incluindo oito testes PostgreSQL
+opt-in, consulta HTTP real, visibilidade e regressões de autenticação.
+
+### Manutenção administrativa (S2-T05)
+
+POST /api/v1/categories e /api/v1/skills criam recursos (201); PATCH dos mesmos
+caminhos com /{id} edita parcialmente (200). Exigem ADMIN; anônimo recebe 401
+e STUDENT 403. Contratos de campos estão em docs/ARCHITECTURE.md.
+Slug duplicado retorna 409, categoria/alvo inexistente 404 e entrada inválida
+422. Falhas desfazem a transação. is_active permite desativar/reativar skills;
+description=null limpa a descrição. Não há DELETE ou criação pública de ADMIN.
+
+Validação S2-T05: 111 testes passaram com `-W error`, incluindo dez testes
+PostgreSQL opt-in e disputa simultânea de slugs em ambos os recursos.
+
+### Preparar ADMIN local para desenvolvimento
+
+Cadastre sua conta por POST /api/v1/auth/register e guarde o id retornado.
+O cadastro continua criando STUDENT. No banco Docker local, promova somente
+essa conta pelo procedimento abaixo, em PowerShell na raiz do repositório.
+Substitua `123` pelo id da conta escolhida. Não há senha ou token no comando.
+
+```powershell
+$env:CODETRACK_LOCAL_ADMIN_ID = '123'
+Push-Location backend
+try {
+@'
+import os
+from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
+from app.core.config import Settings
+from app.database.connection import SessionLocal, engine
+from app.modules.users.models import User, UserRole
+
+settings = Settings()
+if settings.environment != "development" or engine.url.host not in {"localhost", "127.0.0.1", "::1"}:
+    raise SystemExit("Use somente o banco local em development.")
+user_id = int(os.environ["CODETRACK_LOCAL_ADMIN_ID"])
+if not 1 <= user_id <= 2147483647:
+    raise SystemExit("ID invalido.")
+try:
+    with SessionLocal.begin() as session:
+        user = session.scalar(select(User).where(User.id == user_id).with_for_update())
+        if user is None:
+            raise SystemExit("Usuario nao encontrado; nenhuma alteracao.")
+        user.role = UserRole.ADMIN
+    print("Role ADMIN aplicada ao ID informado.")
+except SQLAlchemyError:
+    raise SystemExit("Falha no banco; transacao revertida.") from None
+finally:
+    engine.dispose()
+'@ | & .venv/Scripts/python.exe -
+} finally {
+    Pop-Location
+    Remove-Item Env:CODETRACK_LOCAL_ADMIN_ID
+}
+```
+
+Confirme a role por GET /api/v1/auth/me. Faça login se ainda não tiver token.
+A mudança de role vale no próximo acesso; não cria uma conta ou senha fixa.
+Para reverter, execute o mesmo procedimento trocando a atribuição por
+`user.role = UserRole.STUDENT`. Este procedimento é exclusivamente local;
+não existe endpoint de promoção de usuários. A promoção de uma conta real não
+foi executada durante a validação automática; testes usam bancos descartáveis.
+
+### Fechamento da Sprint 2
+
+S2-T06 concluída: 111 testes passaram com `-W error`, incluindo dez testes
+PostgreSQL opt-in. Integração cobre criação, edição, desativação/reativação,
+visibilidade STUDENT/ADMIN, duplicidade concorrente, rollback e autenticação.
+Build/typecheck frontend, pip check e alembic check passaram. Procedimento de
+ADMIN local teve sintaxe validada; nenhuma conta real foi promovida nos testes.
+O frontend continua apenas com a verificação de conectividade.
+
+## Sprint 3 — persistência do onboarding
+
+S3-T02 adiciona User.declared_experience, user_interests e user_goals pela
+migration 0003_create_onboarding. Há FK RESTRICT, interesse único por usuário e
+categoria, prioridade positiva e um único objetivo principal por usuário.
+Experiência declarada aceita as cinco opções documentadas na arquitetura;
+onboarding_completed=true exige experiência não nula.
+
+Upgrade redefine indicadores anteriores de conclusão para false, pois ainda
+não existiam dados de onboarding. Downgrade remove os dados novos e limpa
+onboarding_completed, preservando usuários e catálogo. Testado em banco isolado.
+Os endpoints do onboarding ainda não estão disponíveis.
+
+Validação S3-T02: 112 testes passaram com `-W error`, incluindo onze testes
+PostgreSQL opt-in; migration aplicada localmente, alembic check sem diferenças
+e pip check sem conflitos. Nenhuma dependência adicionada.
+
+### Schemas e repository do onboarding (S3-T03)
+
+OnboardingCreate, OnboardingUpdate, OnboardingRead e PrimaryGoal validam os
+contratos definidos na arquitetura. PATCH preserva campos omitidos, rejeita
+null no primeiro nível e substitui o conteúdo do objetivo quando fornecido.
+Interesses exigem IDs estritos, distintos e de 1 a 20 categorias.
+
+OnboardingRepository mantém consultas por usuário, busca de categorias em lote,
+substituição de interesses e criação/edição do objetivo principal. Não faz
+commit: o service controla a transação. get_user_locked usa releitura do objeto
+em cache e lock exclusivo para escrita ou compartilhado para leitura.
+
+Validação S3-T03: 136 testes passaram com `-W error`, incluindo doze testes
+PostgreSQL opt-in. Cobertos isolamento entre usuários, rollback, preservação
+de id/created_at do objetivo e bloqueio concorrente. Endpoints ainda pendentes.
+
+### Fluxo HTTP de onboarding (S3-T04)
+
+GET/POST/PATCH /api/v1/onboarding exigem Bearer token e operam somente o perfil
+do usuário autenticado. GET antes da conclusão retorna perfil vazio; POST grava
+perfil completo e conclusão atomicamente (201). POST repetido ou PATCH antes da
+conclusão retorna 409. PATCH após conclusão preserva campos omitidos (200).
+Categoria ausente retorna 404; entrada/query inválida 422. Respostas não são
+armazenáveis em cache. /auth/me reflete onboarding_completed após commit.
+
+Corpos e regras detalhados na seção Onboarding de docs/ARCHITECTURE.md.
+Não existe rascunho, seleção de outro usuário ou inicialização de score.
+Validação S3-T04: 138 testes passaram com `-W error`, incluindo quatorze testes
+PostgreSQL opt-in, disputa real de conclusão e rollback após falha parcial.
+
+### Fechamento da Sprint 3
+
+S3-T05 concluída: 139 testes passaram com `-W error`, incluindo quinze testes
+PostgreSQL opt-in. Fluxo cadastro/login/onboarding/edição/me validado com duas
+contas independentes, incluindo ADMIN no próprio perfil. Tokens identificam
+ownership; user_id externo é rejeitado. Autoavaliação não inicializa desempenho.
+Regressões de catálogo/autenticação, build/typecheck frontend, pip check e
+alembic check passaram. Frontend ainda não possui tela de onboarding.
+
+## Sprint 4 — persistência do diagnóstico
+
+S4-T02: Assessment, AssessmentQuestion, AssessmentItem e AssessmentResult
+implementados com migration 0004_create_assessments. Provas têm uma única
+instância aberta por usuário; itens guardam cópia independente de texto,
+alternativas e gabarito. Resultados são únicos por prova/skill e possuem limites
+de score, confidence e contagens. Não há UserSkill, seed ou endpoints nesta etapa.
+Formato das alternativas e completude de uma prova serão validados pelas
+camadas de entrada/service; a persistência não executa avaliação.
+
+Validação: 140 testes passaram com `-W error`, incluindo dezesseis testes
+PostgreSQL opt-in. Downgrade/reaplicação preservam usuários, catálogo e onboarding.
+Migration aplicada ao banco local; alembic check e pip check passaram.
+
+### Schemas e repository do diagnóstico (S4-T03)
+
+AssessmentCreate e AnswerCreate rejeitam IDs inválidos, skills repetidas,
+ownership e notas fornecidos pelo cliente. QuestionCreate é exclusivo de autoria
+privada e exige alternativas A/B/C/D. AssessmentItemRead não contém correct_option;
+AssessmentRead reúne somente itens e resultados públicos.
+
+AssessmentRepository consulta provas por usuário com lock/releitura, skills
+ativas entre interesses e questões ativas em ordem de ID. Cria snapshots
+independentes e grava respostas/resultados com flush, sem commit implícito.
+Regras de ciclo de vida e autorização serão aplicadas pelo service na S4-T04.
+
+Validação S4-T03: 155 testes passaram com `-W error`, incluindo dezessete testes
+PostgreSQL opt-in. Cobertos entrada, saída sem gabarito, consultas por usuário,
+filtros e rollback de criação, resposta e finalização. Ainda não há endpoints.
+
+### Início e respostas do diagnóstico (S4-T04)
+
+POST /api/v1/assessments recebe skill_ids (1–3, distintos); exige onboarding
+concluído, skills ativas nos interesses e três questões ativas por skill.
+GET /api/v1/assessments/{id} retorna apenas a prova do usuário autenticado.
+POST /api/v1/assessments/{id}/answers recebe item_id/selected_option (A/B/C/D)
+e retorna o item público atualizado. Reenvio substitui a escolha enquanto aberta.
+Todas as rotas exigem Bearer token e omitem gabarito; respostas usam no-store.
+
+Conteúdo insuficiente ou estado incompatível retorna 409; prova de terceiro e
+item indisponível retornam 404. Não há seed automático, importador ou /finish
+nesta etapa. As questões dos testes são artificiais e ficam em bancos descartáveis.
+Validação: 157 testes passaram com `-W error`, incluindo dezenove testes
+PostgreSQL opt-in e concorrência real de criação e envio de respostas.
+
+### Finalização do diagnóstico (S4-T05)
+
+POST /api/v1/assessments/{id}/finish, sem corpo ou query, exige Bearer token do
+dono da prova. Retorna 409 se houver respostas faltantes; sucesso retorna 200
+com prova concluída e resultados por skill. Repetição retorna os mesmos dados
+persistidos, sem duplicar resultados ou reavaliar. Terceiros recebem 404.
+
+Score é acertos/questões × 1000 com arredondamento metade para cima. Confidence
+é 0 por ausência de calibração, não uma avaliação negativa de aprendizagem.
+Correção usa snapshots privados; gabaritos não aparecem nas respostas. UserSkill
+não é criado nem alterado. Respostas posteriores à conclusão retornam 409;
+outro diagnóstico pode ser iniciado após concluir o anterior.
+
+Validação S4-T05: 165 testes passaram com `-W error`, incluindo vinte testes
+PostgreSQL opt-in. Cobertos cálculo, idempotência, finalização concorrente e
+rollback após gravação parcial. Importador e integração final aguardam S4-T06.
+
+### Importação local e fechamento (S4-T06)
+
+O importador recebe um arquivo UTF-8 com uma lista JSON não vazia de questões
+revisadas. Cada objeto segue QuestionCreate: `code` (slug único), `skill_id`
+(ID existente), `prompt`, `options` (objeto com textos A, B, C e D),
+`correct_option` (A/B/C/D) e `is_active` (booleano, padrão true).
+Campos extras são rejeitados. Textos de alternativas têm até 1000 caracteres,
+enunciados até 4000 e códigos até 120.
+
+Com banco iniciado e migrations aplicadas, execute da raiz no PowerShell,
+substituindo o caminho pelo arquivo revisado:
+
+```powershell
+Push-Location backend
+try {
+    & .venv/Scripts/python.exe -m app.modules.assessments.import_questions 'C:\conteudo\questoes-revisadas.json'
+} finally {
+    Pop-Location
+}
+```
+
+O comando usa a configuração do backend e aceita somente `ENVIRONMENT=development`
+com host localhost, 127.0.0.1 ou ::1. Importa apenas questões novas em uma única
+transação: código repetido no lote ou no banco, skill inexistente ou falha de
+gravação rejeitam o lote inteiro. Não atualiza nem sobrescreve conteúdo existente.
+Sucesso retorna código de saída 0 e quantidade importada; falha retorna 1 sem
+imprimir gabarito, credenciais ou detalhes internos.
+
+Para iniciar um diagnóstico, cada skill escolhida precisa de três questões
+ativas. Sem conteúdo suficiente a API retorna 409. Não há seed automático:
+nenhum banco pedagógico revisado foi importado durante o desenvolvimento.
+Fixtures dos testes são sintéticas e não comprovam validade pedagógica.
+O diagnóstico permanece provisório, com confidence=0 e sem inicializar UserSkill.
+
+Validação final: 166 testes passaram com `-W error`, incluindo 21 testes em
+PostgreSQL descartável. Cobertos importação via CLI, duplicidade, rollback e
+cadastro → onboarding → diagnóstico → respostas → resultados entre duas contas.
+Build/typecheck do frontend, pip check e alembic check também passaram.
+
+## Sprint 5 — persistência de desafios (S5-T02)
+
+Challenge e ChallengeSkill implementados na migration 0005_create_challenges.
+Desafios começam inativos; vínculos usam chave composta e FKs RESTRICT.
+O banco valida enums, dificuldade 0–1000, duração 1–1440, limites de textos e
+peso individual 1–100. Soma dos pesos e publicação serão validadas pelo service.
+Não há module_id, hints, tentativas, seed ou endpoints de desafios nesta etapa.
+
+Validação: 167 testes passaram com `-W error`, incluindo 22 testes PostgreSQL
+isolados. Upgrade/downgrade/reaplicação preservaram dados anteriores; limites,
+unicidade de vínculos e proteção contra exclusão de referências foram testados.
+Migration aplicada ao banco local; alembic check e pip check aprovados.
+
+### Schemas e repository de desafios (S5-T03)
+
+Contratos de criação, PATCH, filtros e respostas públicas implementados.
+Campos numéricos/booleanos do JSON são estritos; PATCH distingue omissão de null.
+Repository aplica visibilidade e filtros no banco antes de paginação e carrega
+vínculos em lote. Escritas fazem flush sem commit; locks disponíveis para o service.
+Soma dos pesos, publicação, autorização e rotas aguardam S5-T04.
+
+Validação: 189 testes passaram com `-W error`, incluindo 23 testes PostgreSQL
+isolados. Cobertos limites, skills repetidas/inativas, filtros combinados,
+paginação, substituição dos vínculos e rollback de criação/edição.
+Alembic sem diferenças; nenhuma migration adicional necessária.
+
+### API de desafios (S5-T04)
+
+GET /api/v1/challenges e GET /api/v1/challenges/{id} exigem Bearer token.
+POST e PATCH no mesmo recurso são exclusivos de ADMIN. Payloads e filtros estão
+no [contrato](../docs/CHALLENGE_CONTRACT.md). Desafios começam inativos; publicar
+exige is_active=true, pesos somando 100 e todas as skills ativas. Nenhum conteúdo
+pedagógico é criado automaticamente.
+
+STUDENT vê apenas desafios ativos com todas as skills ativas. ADMIN consulta
+também os demais. Escritas validam o estado final e revertem integralmente em
+caso de erro. PATCH concorrente usa lock/releitura, preservando campos omitidos.
+Não há tentativas, correção, hints ou atualização de desempenho nesta etapa.
+
+Validação: 192 testes passaram com `-W error`, incluindo 26 testes PostgreSQL
+isolados. Cobertos permissões, filtros HTTP, publicação, rollback após flush,
+edições concorrentes e publicação durante desativação de skill. Alembic sem
+diferenças. Integração final e build da Sprint aguardam S5-T05.
+
+### Validar o catálogo localmente
+
+Com PostgreSQL, migrations e API iniciados conforme o README da raiz:
+
+1. Abra http://127.0.0.1:8000/docs. Faça login com uma conta ADMIN existente
+   e use o access_token no botão Authorize. A preparação local de ADMIN está
+   documentada acima; cadastro público não concede essa role.
+2. Consulte/crie uma categoria e uma skill ativa pelos endpoints administrativos.
+3. Envie POST /api/v1/challenges com o exemplo do
+   [contrato](../docs/CHALLENGE_CONTRACT.md), substituindo skill_id pelo ID real.
+   O exemplo é estrutural: revise o conteúdo antes de utilizá-lo com alunos.
+4. Confira o detalhe retornado e publique com PATCH /api/v1/challenges/{id},
+   corpo `{"is_active": true}`. Os pesos precisam somar 100.
+5. Autentique uma conta STUDENT e consulte listagem/detalhe. A conta pode ler,
+   mas não criar nem editar desafios. Desafios inativos retornam 404 no detalhe.
+6. Para conferir visibilidade, como ADMIN desative a skill vinculada e consulte
+   novamente como STUDENT: o desafio fica oculto. Reative a skill para restaurar
+   a visibilidade sem alterar a publicação do desafio.
+
+Os testes automatizados usam bancos descartáveis e conteúdo sintético. Não há
+banco pedagógico revisado provisionado, tela de desafios ou execução de soluções.
+
+Fechamento S5-T05: 192 testes passaram com `-W error`, incluindo 26 testes em
+PostgreSQL isolado. O fluxo integrado percorre cadastro/login, onboarding,
+assessment e publicação/consulta de desafios com ADMIN e STUDENT. Desativar e
+reativar a skill altera a visibilidade sem modificar diagnóstico ou perfil.
+Build/typecheck frontend, pip check, alembic check e links locais aprovados.
+
+## Sprint 6 — persistência de tentativas (S6-T02)
+
+ChallengeAttempt implementado na migration 0006_create_attempts, com snapshot
+JSONB, resposta textual, datas e estados IN_PROGRESS/SUBMITTED. Uma única tentativa
+aberta por usuário/desafio e numeração única; FKs RESTRICT preservam referências.
+Não há eventos, contadores de avaliação ou endpoints de tentativas nesta etapa.
+
+Validação: 193 testes passaram com `-W error`, incluindo 27 testes PostgreSQL
+isolados. Cobertos constraints, tamanho da resposta, snapshot independente,
+histórico e downgrade/reaplicação. Migration aplicada localmente; alembic check
+sem diferenças e pip check aprovado. Ownership e transições aguardam o service.
+
+### Schemas e repository de tentativas (S6-T03)
+
+AttemptDraft aceita somente draft_answer textual, preservando espaços e quebras
+de linha. ChallengeSnapshot valida o contexto completo, skills distintas e pesos
+somando 100. AttemptRead omite user_id e usa datas com fuso.
+Repository filtra consultas por dono, oferece locks/releitura e grava sem commit.
+Service e rotas ainda não estão disponíveis; regras de transição não são aplicadas
+pelo repository.
+
+Validação: 201 testes passaram com `-W error`, incluindo 28 testes PostgreSQL
+isolados. Cobertos limites, campos extras, snapshot independente, isolamento e
+rollback de criação/rascunho/submissão. Alembic sem diferenças.
+
+### Início, retomada e rascunho (S6-T04)
+
+POST /api/v1/challenges/{id}/attempts, sem corpo, retorna 201 para nova tentativa
+ou 200 para retomada da aberta. GET /api/v1/attempts/{id} consulta; PATCH recebe
+somente draft_answer. Todas exigem Bearer token do dono, inclusive para ADMIN,
+e rejeitam query parameters. Respostas usam no-store.
+
+Novo início exige desafio e skills ativos. Tentativas existentes preservam o
+snapshot e continuam acessíveis após edição/desativação do catálogo. Rascunho
+vazio limpa a resposta; reenviar texto idêntico não altera last_activity_at.
+PATCH em tentativa submetida retorna 409; /submit será implementado na S6-T05.
+
+Validação: 203 testes passaram com `-W error`, incluindo 30 testes PostgreSQL
+isolados. Cobertos ownership, HTTP, retomada, snapshot, início concorrente e
+rollback após flush. Alembic sem diferenças e pip check aprovado.
+
+### Submissão de tentativas (S6-T05)
+
+POST /api/v1/attempts/{id}/submit exige token do dono e não aceita corpo ou query.
+Submete o último rascunho salvo, exigindo texto não branco. Retorna 200 com estado
+SUBMITTED e datas persistidas. Reenvio retorna os mesmos dados; PATCH posterior
+retorna 409. Não há avaliação ou indicação de aprovação.
+
+Após submissão, novo POST /api/v1/challenges/{id}/attempts cria outra tentativa
+se o catálogo estiver disponível, incrementando o número e copiando o contexto
+atual. A tentativa anterior permanece consultável e inalterada.
+
+Validação: 206 testes passaram com `-W error`, incluindo 33 testes PostgreSQL
+isolados. Cobertos resposta vazia, terceiros, reenvio, nova tentativa, rollback
+e concorrência de submissão/salvamento. Alembic sem diferenças.
+
+### Validar tentativas localmente
+
+Com API e banco iniciados e um desafio publicado, use /docs autenticado como
+STUDENT. Não é necessário concluir onboarding ou assessment para este fluxo.
+
+1. Envie POST /api/v1/challenges/{id}/attempts sem corpo. Guarde o id retornado.
+2. Salve com PATCH /api/v1/attempts/{id}, por exemplo
+   `{"draft_answer": "Minha resposta"}`. Espaços e quebras de linha são preservados.
+3. Repita o início para retomar: retorna 200 e a mesma tentativa aberta.
+4. Envie POST /api/v1/attempts/{id}/submit sem corpo. O estado passa a SUBMITTED;
+   reenvio mantém o resultado, e novas edições retornam 409.
+5. Inicie novamente no desafio disponível: uma nova tentativa recebe o próximo
+   número. GET pelo ID anterior continua retornando a resposta e o contexto salvos.
+
+Outra conta, inclusive ADMIN, recebe 404 ao acessar a tentativa. Edições ou
+desativação do desafio não alteram o contexto de uma tentativa existente.
+Submissão registra a resposta, sem executar código, avaliar ou atualizar skills.
+Não há tela de resolução ou conteúdo pedagógico revisado provisionado.
+
+Fechamento S6-T06: 206 testes passaram com `-W error`, incluindo 33 testes
+PostgreSQL isolados. Fluxo integrado completo preserva histórico, perfil e
+assessment, inclusive após edição/desativação do catálogo. Build/typecheck,
+pip check, alembic check, links locais e diff aprovados.

@@ -1,0 +1,1 @@
+"""Competências do catálogo."""

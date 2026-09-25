@@ -2,113 +2,172 @@
 
 ## Sprint atual
 
-SPRINT 2 — CATEGORIES + SKILLS
+SPRINT 6 — ATTEMPTS
 
-Status: em andamento; S2-T01 concluída, implementação de código não iniciada.
-Histórico: [Sprint 0](SPRINT_0.md) e [Sprint 1](SPRINT_1.md).
+Status: concluída; S6-T01 a S6-T06 concluídas.
+Histórico: [Sprint 0](SPRINT_0.md), [Sprint 1](SPRINT_1.md),
+[Sprint 2](SPRINT_2.md), [Sprint 3](SPRINT_3.md), [Sprint 4](SPRINT_4.md)
+e [Sprint 5](SPRINT_5.md).
 
 ## Objetivo e fundamento
 
-Disponibilizar catálogo de categorias e competências, com consulta autenticada
-e manutenção por ADMIN. Base: PROJECT_SPEC.md, seções 3, 8 e 21;
-ARCHITECTURE.md, modelos Category/Skill e rotas Skills; BUSINESS_RULES.md,
-RN04, RN05 e RN53–RN55. Cada Skill pertence a uma Category.
-Skill representa competência, não nível global ou desempenho individual.
+Permitir iniciar, salvar, retomar e submeter tentativas próprias, preservando
+histórico. Base: PROJECT_SPEC.md, fluxo da seção 12 e roadmap; BUSINESS_RULES.md,
+RN17–RN23; ARCHITECTURE.md, ChallengeAttempt, AttemptEvent e endpoints Attempts.
+Submissão não significa aprovação: avaliação pertence à Sprint 7.
+
+## Estado inicial
+
+Catálogo de desafios e manutenção administrativa implementados. Desafios podem
+ser editados/desativados e dependem da atividade das skills para visibilidade.
+Não há tentativas, hints, soluções privadas ou avaliação de desafios. Assessment
+não inicializa UserSkill. Não exigir desempenho inexistente para iniciar prática.
 
 ## Escopo
 
-- Models Category e Skill com migration e vínculo obrigatório.
-- Schemas, repositories, services e routers necessários ao catálogo.
-- Consulta de categorias, listagem e detalhe de skills.
-- Criação/edição por ADMIN e ativação/desativação de Skill via is_active.
-- Reutilização da autenticação da Sprint 1; testes isolados e documentação.
+- Definir ciclo de vida, formato da resposta e preservação do contexto do desafio.
+- Persistir tentativas com vínculo a usuário/desafio e histórico preservado.
+- POST /api/v1/challenges/{id}/attempts, GET/PATCH /api/v1/attempts/{id}
+  e POST /api/v1/attempts/{id}/submit, conforme contrato a definir.
+- Ownership sempre pela identidade autenticada; regras no AttemptService.
+- Delimitar eventos mínimos úteis antes de criar AttemptEvent.
+- Testes de autorização, transações, concorrência e integração PostgreSQL isolada.
 
-Sem exclusão física ou novo campo de ativação em Category neste recorte.
-Sem criação de ADMIN pelo cadastro público. Não popular automaticamente o
-catálogo nem converter exemplos da especificação em conteúdo obrigatório.
+## Decisões necessárias na S6-T01
+
+Lacunas resolvidas no [contrato S6-T01](ATTEMPT_CONTRACT.md) e RN17–RN23:
+
+- Estados e transições; significado de submissão sem avaliação automática.
+- Tipos de desafio atendidos e formato/limites de draft_answer. O catálogo aceita
+  nove tipos como metadados; isso não define nove formatos de resposta.
+- Pré-condições de início: disponibilidade do desafio, onboarding e assessment.
+- Quantidade de tentativas em andamento por usuário/desafio, numeração e
+  comportamento de início repetido/concorrente e nova tentativa após submissão.
+- Retomada de tentativa e descoberta de seu ID sem inventar dashboard ou listagem
+  geral; definir se o próprio início retorna a tentativa em andamento.
+- Efeito de edição/desativação do desafio ou skill sobre tentativas existentes.
+  Definir snapshot mínimo para preservar enunciado e vínculos históricos.
+- Campos editáveis, omissão/null, resposta vazia, timestamps e origem dos valores.
+  Não confiar no cliente para status, dono, número, notas ou contadores.
+- Imutabilidade após submissão, repetição de submit, idempotência e disputa entre
+  salvar/submeter/iniciar. Fixar limites transacionais e ordem de locks.
+- Se AttemptEvent entra agora, definir somente eventos observáveis necessários,
+  sem duplicar respostas sensíveis em metadata ou gerar evento em toda leitura.
+- Campos previstos de execução, ajuda, testes, tempo e difficulty_rating: decidir
+  quais pertencem ao recorte; não preencher valores que pareçam evidência real.
+- Erros HTTP, projeções públicas e proteção contra acesso por terceiros, inclusive
+  ADMIN: administração de conteúdo não concede acesso a respostas pessoais.
+
+Registrar decisões nos documentos responsáveis, distinguindo-as de requisitos
+preexistentes. Mudanças arquiteturais significativas exigem aprovação.
 
 ## FUTURO — fora do escopo
 
-Onboarding (Sprint 3), assessment (Sprint 4), UserSkill, inicialização de scores,
-SkillRequirement, configuração de pré-requisitos, atualização de domínio,
-tracks, challenges, attempts, evaluation, recommendation e dashboard.
-GET /api/v1/users/me/skills depende de UserSkill e fica fora deste recorte.
-Telas de catálogo/admin e novas funções de autenticação também são FUTURO.
-O frontend mantém a verificação de conectividade.
+Evaluation e feedback de desempenho (Sprint 7), recomendação (Sprint 8), dashboard,
+interface de resolução, execução de código, LLM, atualização de UserSkill e scores.
+Hints/soluções e endpoint /hint permanecem FUTURO: não há conteúdo privado ou
+contrato de provisionamento implementado. Regras RN24–RN28 serão aplicadas quando
+essa funcionalidade entrar no escopo. Não criar contadores fictícios de ajuda.
+Filtro completed de desafios aguarda definição de conclusão/avaliação; não
+interpretar submissão como sucesso. Sem abandono automático ou tarefas agendadas.
 
 ## Sequência de tarefas
 
-Executar uma tarefa por vez, validar e registrar o resultado.
+Executar uma tarefa por vez, respeitando as dependências.
 
-### S2-T01 — Contratos e decisões do catálogo
+### S6-T01 — Contratos e ciclo de vida
 
-Status: concluída. Contratos registrados na seção de Skills da arquitetura;
-decisões de negócio anexadas à RN05. Definidos campos, defaults, slugs, PATCH,
-paginação, visibilidade e erros. Revisão documental de coerência realizada;
-nenhum código alterado e nenhum teste de execução necessário nesta tarefa.
+Status: concluída. Contrato define resposta textual, estados IN_PROGRESS/SUBMITTED,
+retomada por início repetido, snapshot e submissão idempotente. Sem AttemptEvent,
+avaliação, hints ou contadores fictícios. Revisão documental, sem código ou banco.
 
-Definir contratos na arquitetura antes de codificar. Preservar GET /api/v1/skills
-e GET /api/v1/skills/{id}; detalhar rotas Category e escrita administrativa,
-ainda não especificadas. Definir tamanhos, descrição, normalização/unicidade
-de slug, defaults, ordenação/paginação e visibilidade de inativos por role.
-Documentar erros 401/403/404/409/422 e categoria inexistente. Registrar decisões
-de negócio no documento responsável, distinguindo-as de requisitos anteriores.
-Não alterar stack ou arquitetura.
+Resolver as lacunas acima, delimitar entidades/campos e registrar contratos,
+transições, erros, snapshots e concorrência antes de alterar código.
+Atualizar ARCHITECTURE.md e BUSINESS_RULES.md com decisões consolidadas.
 
-### S2-T02 — Persistência Category e Skill
+### S6-T02 — Models e migration
 
-Status: pendente.
+Status: concluída. ChallengeAttempt e migration 0006_create_attempts implementados.
+Snapshot JSONB, FKs RESTRICT, número único por usuário/desafio, índice parcial
+de tentativa aberta e constraints de estado/datas. Migration revisada e aplicada
+ao banco local. Validação: 193 testes passaram com `-W error`, incluindo 27 testes
+PostgreSQL isolados. Cobertos limites, snapshot independente, histórico, constraints
+e downgrade/reaplicação. Alembic sem diferenças e pip check aprovado.
+Transições, ownership e formato completo do snapshot aguardam schemas/service.
 
-Criar models e migration conforme S2-T01. category_id obrigatório com chave
-estrangeira; impedir referências órfãs. Testar defaults, unicidade,
-upgrade/downgrade e reaplicação em PostgreSQL descartável. Preservar users.
+Implementar somente persistência definida, com FKs, índices, unicidade e constraints.
+Preservar histórico; testar upgrade/downgrade/reaplicação em banco descartável
+sem perda dos dados anteriores. Não antecipar entidades de avaliação.
 
-### S2-T03 — Schemas e repositories
+### S6-T03 — Schemas e repository
 
-Status: pendente.
+Status: concluída. Schemas de rascunho, snapshot e resposta pública implementados.
+Repository consulta por dono, disponibiliza locks/releitura, numeração e gravações
+sem commit. Snapshot é copiado e validado; saída omite user_id.
+Validação: 201 testes passaram com `-W error`, incluindo 28 testes PostgreSQL
+isolados. Cobertos entrada restrita, limites, skills/pesos, isolamento por dono,
+snapshot independente e rollback de criação, rascunho e submissão.
+Alembic sem diferenças; transições e autorização HTTP aguardam o service/router.
 
-Implementar validação, entrada/saída e consultas necessárias. Rejeitar campos
-extras. Repositories não fazem commit nem autorização. Testar limites,
-consultas e rollback.
+Validar respostas, IDs, limites e campos extras. Separar entrada de dados internos.
+Implementar consultas por dono, locks/releitura e persistência sem commit.
+Testar snapshots, consultas, ordenação necessária e rollback.
 
-### S2-T04 — Consulta do catálogo
+### S6-T04 — Início, consulta e rascunho
 
-Status: pendente.
+Status: concluída. AttemptService e rotas de início, consulta e rascunho
+implementados. Novo início retorna 201; retomada 200 sem alterar datas. Snapshot
+preservado após edição/desativação do catálogo; acesso exclusivo do dono,
+inclusive perante ADMIN. Locks serializam início e salvamento.
+Validação: 203 testes passaram com `-W error`, incluindo 30 testes PostgreSQL
+isolados. Cobertos HTTP, acesso de terceiros, entrada inválida, rascunho repetido,
+estado submetido, início concorrente e rollback após flush. Alembic e pip check OK.
+PostgreSQL local foi reiniciado antes da execução final. /submit aguarda S6-T05.
 
-Implementar services e routers finos para consulta autenticada conforme S2-T01.
-Cobrir catálogo vazio, ordenação/paginação, detalhe ausente, categoria relacionada
-e visibilidade de inativos. Não retornar níveis ou desempenho inventados.
+AttemptService coordena início/retomada e salvamento atômicos; routers finos.
+Aplicar ownership e disponibilidade conforme contrato. Testar terceiros,
+tentativa inexistente, estados inválidos, início concorrente e preservação de dados.
 
-### S2-T05 — Manutenção administrativa
+### S6-T05 — Submissão e histórico
 
-Status: pendente.
+Status: concluída. POST /attempts/{id}/submit implementado, sem corpo/query,
+exclusivo do dono. Resposta não branca obrigatória; submissão atômica e repetível,
+sem alterar datas já salvas ou avaliar conteúdo. PATCH posterior retorna 409.
+Validação: 206 testes passaram com `-W error`, incluindo 33 testes PostgreSQL
+isolados. Cobertos HTTP, terceiros, vazios, repetição, rollback após flush,
+submits concorrentes, ambas as ordens de salvar/submeter e nova tentativa com
+histórico preservado. Alembic sem diferenças.
 
-Criar/editar Category e Skill; alterar is_active em Skill. Usar require_admin;
-regras e transações nos services. Validar categoria de destino, duplicidade
-inclusive concorrente e rollback. Testar anônimo 401, STUDENT 403 e ADMIN
-autorizado, incluindo mudança de role. Não adicionar exclusão física.
+Implementar submit sem avaliação e transições/eventos definidos na S6-T01.
+Testar repetição, resposta ausente, imutabilidade, corrida salvar/submeter,
+nova tentativa e rollback após falha parcial, preservando tentativas anteriores.
 
-### S2-T06 — Integração e documentação
+### S6-T06 — Integração e fechamento
 
-Status: pendente.
+Status: concluída. Integração com cadastro/login, onboarding, assessment e catálogo
+valida início, rascunho, retomada, submissão e nova tentativa entre contas distintas.
+Edição/desativação do desafio preserva o snapshot; perfil e diagnóstico permanecem
+inalterados. Validação final: 206 testes passaram com `-W error`, incluindo 33
+testes PostgreSQL isolados. Build/typecheck, pip check, alembic check, links e diff
+aprovados. Fluxo local documentado em backend/README.md.
+Limites: sem avaliação, execução de código, hints, UserSkill ou tela de resolução.
+Conteúdo de testes é sintético; não houve provisionamento pedagógico revisado.
 
-Testar ADMIN cria categoria → cria skill → consulta → edita/desativa e visão
-STUDENT conforme contrato. Documentar preparação explícita e local de ADMIN
-para desenvolvimento, sem senha fixa, promoção pública ou credenciais versionadas.
-Reexecutar regressões de autenticação, migrations e build frontend.
-Atualizar README e evidências antes de concluir a Sprint.
+Validar publicação → início → rascunho → retomada → submissão → nova tentativa,
+com contas distintas e alterações posteriores no catálogo. Verificar ausência
+de efeitos sobre assessment/perfil. Rodar regressões, migrations, dependências e
+build/typecheck; documentar fluxo reproduzível, resultados e limitações.
 
 ## Definition of Done
 
-- [x] Contratos e decisões do catálogo documentados.
-- [ ] Models e migration validados em PostgreSQL isolado.
-- [ ] Cada Skill referencia uma Category existente.
-- [ ] Unicidade, validação e transações cobertas por testes.
-- [ ] Consultas respeitam autenticação, visibilidade e limites documentados.
-- [ ] Somente ADMIN altera o catálogo.
-- [ ] Ativação/desativação de Skill funciona sem exclusão física.
-- [ ] Regressões da Sprint 1 e build frontend passam.
-- [ ] Instruções reproduzíveis e exemplos sem segredos.
+- [x] Contratos, estados e formato de resposta definidos antes de implementar.
+- [x] Persistência e migrations validadas em PostgreSQL isolado.
+- [x] Ownership aplicado em todas as operações.
+- [x] Início, rascunho e retomada respeitam estado e disponibilidade.
+- [x] Submissão atômica sem avaliação antecipada.
+- [x] Histórico e contexto preservados conforme contrato.
+- [x] Concorrência, repetição e rollback testados.
+- [x] Regressões, build e documentação validados.
 
 ## Active AI Skills
 
@@ -122,9 +181,15 @@ Carregar somente as pertinentes à tarefa:
 - [debugging](../.ai/skills/debugging.md)
 - [documentation](../.ai/skills/documentation.md)
 
-FUTURO — inativas: code-review, learning-evaluation, recommendation-engine,
-adaptive-learning e challenge-design. Ativação não amplia o escopo.
+Skills de desenho de conteúdo, avaliação, recomendação e aprendizagem adaptativa
+permanecem inativas neste recorte.
+
+## Validação do planejamento
+
+Roadmap, RN17–RN28, entidades/endpoints previstos e dependências existentes
+conferidos. Alteração documental; nenhuma mudança de código ou banco.
+Os 192 testes registrados no histórico pertencem ao fechamento da Sprint 5.
 
 ## Próxima tarefa
 
-S2-T02 — criar models Category/Skill e migration, com testes PostgreSQL isolados.
+Planejar Sprint 7 — Evaluation conforme o roadmap, antes de implementar.

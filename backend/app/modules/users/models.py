@@ -3,7 +3,7 @@
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Boolean, DateTime, Enum, Identity, Index, String, Text, func, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Enum, Identity, Index, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database.base import Base
@@ -14,6 +14,14 @@ class UserRole(StrEnum):
     ADMIN = "ADMIN"
 
 
+class DeclaredExperience(StrEnum):
+    NEVER_PROGRAMMED = "NEVER_PROGRAMMED"
+    BEGINNER = "BEGINNER"
+    BASIC = "BASIC"
+    INTERMEDIATE = "INTERMEDIATE"
+    ADVANCED = "ADVANCED"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -21,6 +29,10 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(120))
     email: Mapped[str] = mapped_column(String(320))
     password_hash: Mapped[str] = mapped_column(Text)
+    declared_experience: Mapped[DeclaredExperience | None] = mapped_column(
+        Enum(DeclaredExperience, name="ck_users_declared_experience", native_enum=False,
+             create_constraint=True, validate_strings=True, length=20)
+    )
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole, name="user_role", native_enum=False, create_constraint=True,
              validate_strings=True),
@@ -35,4 +47,8 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    __table_args__ = (Index("ux_users_email_lower", func.lower(email), unique=True),)
+    __table_args__ = (
+        Index("ux_users_email_lower", func.lower(email), unique=True),
+        CheckConstraint("NOT onboarding_completed OR declared_experience IS NOT NULL",
+                        name="ck_users_onboarding_experience"),
+    )

@@ -157,6 +157,29 @@ O recomendador deverá considerar pré-requisitos quando aplicável.
 
 Todo Challenge ativo deve possuir pelo menos uma Skill relacionada.
 
+Decisões S5-T01 — catálogo de desafios (contrato; implementação pendente):
+
+- ADMIN cadastra e edita; STUDENT apenas consulta. Toda operação exige
+  autenticação. Não exigir onboarding, assessment ou UserSkill para consultar.
+- Todo desafio cadastrado, inclusive inativo, possui de 1 a 20 skills distintas.
+  Começa inativo por padrão; publicação é alteração explícita de is_active.
+- Skills vinculadas devem existir. Um desafio ativo só pode ser gravado com
+  todas as skills vinculadas ativas. Desafios inativos podem referenciar skills
+  inativas para permitir manutenção administrativa.
+- STUDENT só vê desafios ativos cujas skills estejam todas ativas. Desativar
+  uma skill oculta esses desafios dinamicamente, sem apagar vínculos nem alterar
+  is_active do desafio. Reativá-la restaura a visibilidade se as demais estiverem
+  ativas. ADMIN pode consultar todos. Detalhe indisponível ao aluno retorna 404.
+- Edição substitui a lista de skills inteira quando ela é fornecida, em uma
+  transação com os demais campos; não há exclusão física nesta Sprint.
+- Conteúdo é preparado por ADMIN: descrição deve apresentar objetivo de
+  aprendizagem, enunciado, entradas/saídas e resultado esperado verificável.
+  A API valida estrutura, não qualidade pedagógica. Não há seed automático.
+- Tipos previstos na especificação são metadados de catálogo nesta Sprint;
+  nenhum deles habilita submissão, execução ou correção. Dicas e soluções
+  privadas não fazem parte dos campos armazenados ou retornados neste recorte.
+- Não há atualização de UserSkill nem efeitos sobre resultados de assessment.
+
 ---
 
 ## RN14
@@ -166,6 +189,11 @@ A soma dos pesos de ChallengeSkill deverá ser:
 ```text
 100%
 ```
+
+Decisão S5-T01: weight é percentual inteiro entre 1 e 100, sem frações.
+A soma deve ser exatamente 100 em toda criação/edição, mesmo inativa.
+ChallengeService verifica a soma sobre o estado final e coordena a transação;
+o banco garante limites individuais e unicidade de cada par desafio/skill.
 
 ---
 
@@ -191,6 +219,10 @@ HARD
 VERY_HARD
 ```
 
+Decisão S5-T01: difficulty e difficulty_score são informados pelo administrador.
+Não há conversão automática ou faixas de equivalência aprovadas entre eles.
+Ambos devem ser coerentes na revisão do conteúdo, sem inferir nível do usuário.
+
 ---
 
 # Attempt
@@ -210,6 +242,9 @@ Toda tentativa pertence a:
 
 Usuário só poderá alterar suas próprias tentativas.
 
+Decisão S6-T01: leitura também é exclusiva do dono, inclusive perante ADMIN.
+Tentativa inexistente e tentativa de terceiro retornam 404 indistinguível.
+
 ---
 
 ## RN19
@@ -222,11 +257,23 @@ Uma tentativa finalizada não deve ser sobrescrita como se nunca tivesse ocorrid
 
 Nova tentativa deverá preservar histórico anterior.
 
+Decisões S6-T01 (contrato; implementação pendente): estados IN_PROGRESS e
+SUBMITTED, sem aprovação/reprovação. Uma aberta por usuário/desafio; iniciar
+novamente retoma a aberta. Após submit, novo início incrementa attempt_number.
+Snapshot preserva enunciado, dificuldade e skills/pesos do início. Edição ou
+desativação posterior não impede concluir a tentativa existente; novos inícios
+exigem desafio e skills ativos. Não exigir onboarding ou assessment.
+
 ---
 
 ## RN21
 
 Rascunhos poderão ser salvos.
+
+Decisão S6-T01: resposta textual até 20000 caracteres para todos os tipos, sem
+execução/correção. String vazia limpa rascunho; submit exige texto não branco.
+Após submit, resposta e contexto não podem ser editados. Repetir submit retorna
+o registro salvo, sem novas datas ou avaliação. Detalhes em ATTEMPT_CONTRACT.md.
 
 ---
 
@@ -255,6 +302,10 @@ RESUMED
 ```
 
 Não registrar eventos irrelevantes.
+
+Decisão S6-T01: não criar AttemptEvent neste recorte; timestamps da tentativa
+registram início/submissão. GET e retomada não geram eventos ou alteram atividade.
+Histórico de tentativas é preservado, mas não versões de cada rascunho.
 
 ---
 
@@ -478,17 +529,43 @@ O nível informado pelo usuário é apenas uma autoavaliação.
 
 Não deve substituir dados reais de desempenho.
 
+Decisão S3-T01: experiência declarada aceita NEVER_PROGRAMMED, BEGINNER, BASIC,
+INTERMEDIATE e ADVANCED. É informação de perfil; não modifica score, confidence
+ou UserSkill e não atribui um nível global de domínio.
+
 ---
 
 ## RN48
 
 Interesses podem ser múltiplos.
 
+Decisão S3-T01: conclusão exige de 1 a 20 categorias distintas existentes,
+inclusive categorias sem skills ativas. Não há preferência ordinal neste fluxo:
+todos os UserInterest recebem priority=1. A ordem enviada não representa ranking.
+Na edição, uma lista fornecida substitui todos os interesses; ausência preserva
+a seleção. Lista vazia, repetida ou com categoria inexistente é rejeitada.
+
 ---
 
 ## RN49
 
 Um objetivo poderá ser marcado como principal.
+
+Decisões S3-T01 para o recorte inicial:
+
+- Onboarding concluído possui exatamente um objetivo principal. Este fluxo não
+  cria objetivos secundários nem oferece escolha de is_primary pelo cliente.
+- goal_type é texto curto informado pelo usuário; exemplos da especificação
+  não constituem lista fechada. description é opcional.
+- POST registra experiência, interesses e objetivo e marca onboarding_completed
+  na mesma transação. Não há rascunho persistido nesta Sprint.
+- POST repetido após conclusão retorna conflito; PATCH antes da conclusão também.
+  PATCH válido altera o perfil mantendo a conclusão; não existe operação de reset.
+- STUDENT e ADMIN consultam/editam somente seu próprio onboarding. Ownership e
+  estado de conclusão são determinados pelo backend.
+- Escritas simultâneas do mesmo usuário são serializadas. Duas conclusões
+  concorrentes produzem um sucesso e um conflito; PATCH aplica apenas campos
+  enviados sobre o estado atual, com a última escrita prevalecendo nesses campos.
 
 ---
 
@@ -498,17 +575,30 @@ Um objetivo poderá ser marcado como principal.
 
 Assessments deverão priorizar Skills relevantes ao perfil e objetivo.
 
+Decisão S4-T01 confirmada: usuário escolhe de 1 a 3 skills ativas dentro das
+categorias dos seus interesses, conforme seu objetivo. Cada skill exige três
+questões de múltipla escolha disponíveis. Sem mapeamento automático de texto livre.
+
 ---
 
 ## RN51
 
 Resultado do Assessment poderá inicializar UserSkill.
 
+Recorte S4-T01 confirmado: resultados persistidos somente em AssessmentResult;
+não inicializar nem sobrescrever UserSkill nesta Sprint.
+
 ---
 
 ## RN52
 
 Assessment inicial não deve ser considerado avaliação definitiva.
+
+Decisão S4-T01: score representa acertos/questões × 1000, arredondado com metade
+para cima. confidence=0 indica ausência de calibração de confiança de domínio,
+não ausência de aprendizagem. Não classificar domínio global por esse resultado.
+Finalização exige todas as respostas e é idempotente; repetir diagnóstico não
+aumenta confidence. Contratos detalhados no documento vinculado à arquitetura.
 
 Desempenho posterior deve recalibrar o perfil.
 

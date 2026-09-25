@@ -4,9 +4,16 @@
 
 Sprint 1 concluída: cadastro, login JWT, identidade autenticada e verificação
 de permissões no backend. Evidências no [fechamento da Sprint 1](docs/SPRINT_1.md).
-Sprint 2 — Categories + Skills com contratos definidos (S2-T01); models e API
-do catálogo ainda não implementados, conforme o
-[planejamento atual](docs/CURRENT_SPRINT.md).
+Sprint 2 — Categories + Skills concluída: persistência, consulta autenticada,
+manutenção administrativa e validação integrada ([histórico](docs/SPRINT_2.md)).
+Sprint 3 — Onboarding concluída: persistência, fluxo HTTP e integração entre
+contas validados ([histórico](docs/SPRINT_3.md)).
+Sprint 4 — Assessment concluída: início, respostas, resultados por skill e
+importação local de questões revisadas ([fechamento](docs/SPRINT_4.md)).
+Sprint 5 — Challenges concluída: catálogo autenticado, API administrativa,
+publicação e integração validados ([fechamento](docs/SPRINT_5.md)).
+Sprint 6 — Attempts concluída: início, retomada, rascunho, submissão e histórico
+validados ([fechamento](docs/CURRENT_SPRINT.md)).
 
 Sprint 0 concluída: backend FastAPI, frontend React + TypeScript + Vite,
 PostgreSQL com Docker, SQLAlchemy, Alembic e comunicação via `/health`.
@@ -74,11 +81,11 @@ Push-Location backend
 Pop-Location
 ```
 
-Com CODETRACK_TEST_ADMIN_URL configurada, 73 testes passam, incluindo cinco
+Com CODETRACK_TEST_ADMIN_URL configurada, 206 testes passam, incluindo 33
 testes PostgreSQL que criam e removem bancos descartáveis. Sem essa variável,
-esses cinco são pulados. Consulte [testes do backend](backend/README.md).
+esses 33 são pulados. Consulte [testes do backend](backend/README.md).
 Alembic deve indicar ausência de novas operações e o build deve concluir.
-`/health` não consulta o banco. Na conclusão da Sprint 1, os 73 testes passaram
+`/health` não consulta o banco. Na conclusão da Sprint 6, os 206 testes passaram
 com `-W error`; Alembic, dependências e build também foram validados.
 
 Para encerrar API e frontend, use Ctrl+C nos respectivos terminais.

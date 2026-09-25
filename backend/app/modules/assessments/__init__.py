@@ -1,0 +1,1 @@
+"""Diagnóstico inicial por competência."""
