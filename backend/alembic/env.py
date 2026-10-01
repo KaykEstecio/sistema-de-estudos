@@ -13,6 +13,8 @@ from app.modules.onboarding.models import UserInterest, UserGoal
 from app.modules.assessments.models import Assessment, AssessmentQuestion, AssessmentItem, AssessmentResult
 from app.modules.challenges.models import Challenge, ChallengeSkill
 from app.modules.attempts.models import ChallengeAttempt
+from app.modules.evaluation.models import AttemptEvaluation, AttemptEvaluationSkill
+from app.modules.skills.progress_models import UserSkill, SkillEvidence
 
 # Adicionar imports de novos models conforme forem implementados.
 target_metadata = Base.metadata

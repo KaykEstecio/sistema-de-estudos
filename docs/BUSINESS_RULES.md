@@ -364,6 +364,12 @@ Não aplicar penalização exagerada.
 
 # Evaluation
 
+Recorte S7 aprovado em 29/09/2026: avaliação manual qualitativa por ADMIN,
+com evidência e feedback por skill, sem autorrevisão ou atualização de UserSkill.
+Permissões, rubrica e idempotência no [contrato](EVALUATION_CONTRACT.md).
+RN32–RN36 permanecem requisitos da futura atualização de habilidades; não há
+coeficientes ou notas implícitos nas classificações qualitativas.
+
 ## RN29
 
 Uma tentativa não será avaliada somente como:
@@ -399,6 +405,13 @@ ChallengeService não será responsável por atualizar Skills.
 ---
 
 # Skill Update
+
+Recorte S7A aprovado: a [política manual-skill-v1](USER_SKILL_POLICY_DRAFT.md)
+define a conversão experimental das classificações e substitui a ausência de
+atualização do recorte S7 para avaliações novas. SkillService aplica progresso
+na mesma transação da avaliação. Avaliações antigas não recebem backfill.
+Assessment continua independente; seu resultado elegível serve apenas de base
+na primeira evidência avaliável. Persistência e corte: [contrato](USER_SKILL_STORAGE.md).
 
 ## RN32
 
@@ -438,6 +451,12 @@ Poucos exercícios não devem produzir confidence artificialmente alta.
 ---
 
 # Recommendation
+
+Recorte S8: implementação determinística por skill focal explícita, conforme
+[skill-focus-v1](RECOMMENDATION_POLICY.md). Usa interesses, referências por skill,
+confiança e histórico do dono; explica cada sugestão. Objetivo textual não é
+interpretado e pré-requisitos/metas de domínio permanecem FUTURO. Consulta sem
+persistência ou alteração de progresso. Contrato em [RECOMMENDATION_API.md](RECOMMENDATION_API.md).
 
 ## RN37
 

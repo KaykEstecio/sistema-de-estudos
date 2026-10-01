@@ -482,6 +482,24 @@ Não implementar inicialmente:
 
 # 21. Roadmap
 
+Recorte da Sprint 7 escolhido em 29/09/2026: revisão manual qualitativa por ADMIN.
+Atualização de UserSkill foi adiada naquele recorte e implementada na Sprint 7A
+com política determinística aprovada em 30/09/2026. Inclui progresso por habilidade,
+histórico de evidências e consulta exclusiva do dono. Recommendation Engine
+foi implementado no recorte por skill focal da Sprint 8, com política determinística
+experimental e consulta autenticada. Dashboard implementado na Sprint 9, incluindo
+progresso, recomendações e detalhe somente leitura. Resolução de desafios no
+frontend está planejada na Sprint 10, ainda não implementada; recorte em
+[CHALLENGE_EXPERIENCE_PLAN.md](CHALLENGE_EXPERIENCE_PLAN.md).
+Contrato em [RECOMMENDATION_API.md](RECOMMENDATION_API.md).
+Contratos de progresso em
+[USER_SKILL_POLICY_DRAFT.md](USER_SKILL_POLICY_DRAFT.md) e
+[USER_SKILL_API.md](USER_SKILL_API.md).
+
+Revisão autorizada em 25/09/2026: inserir Sprint 6A antes de Evaluation para
+entregar as telas de cadastro/login, onboarding e assessment sobre as APIs
+existentes. Dashboard e experiência de desafios permanecem nas Sprints 9 e 10.
+
 ```text
 Sprint 0
 Foundation
@@ -503,6 +521,9 @@ Challenges
 
 Sprint 6
 Attempts
+
+Sprint 6A
+Frontend — Auth, Onboarding e Assessment
 
 Sprint 7
 Evaluation

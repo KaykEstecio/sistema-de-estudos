@@ -2,7 +2,8 @@
 
 from datetime import datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, true
+from sqlalchemy.engine import RowMapping
 from sqlalchemy.orm import Session
 
 from app.modules.attempts.models import ChallengeAttempt
@@ -14,6 +15,21 @@ from app.modules.users.models import User
 class AttemptRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
+
+    def list_owned(self, user_id: int, limit: int, offset: int) -> tuple[list[RowMapping], int]:
+        attempt = ChallengeAttempt
+        owned = select(
+            attempt.id, attempt.challenge_id, attempt.challenge_snapshot["title"].astext.label("title"),
+            attempt.status, attempt.attempt_number, attempt.started_at,
+            attempt.submitted_at, attempt.last_activity_at,
+        ).where(attempt.user_id == user_id).cte("owned_attempts")
+        count = select(func.count().label("total")).select_from(owned).cte("attempt_count")
+        page = select(owned).order_by(owned.c.last_activity_at.desc(), owned.c.id.desc()).limit(limit).offset(offset).cte("attempt_page")
+        # LEFT JOIN preserves the count even when the requested page is empty.
+        statement = select(count.c.total, page).select_from(count.outerjoin(page, true())).order_by(
+            page.c.last_activity_at.desc(), page.c.id.desc())
+        rows = self.session.execute(statement).mappings().all()
+        return [row for row in rows if row["id"] is not None], rows[0]["total"]
 
     def get_user_locked(self, user_id: int) -> User | None:
         return self.session.scalar(select(User).where(User.id == user_id).with_for_update()

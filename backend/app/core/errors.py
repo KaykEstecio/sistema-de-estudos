@@ -11,6 +11,17 @@ from app.modules.assessments.service import AssessmentNotFound, AssessmentConfli
 from app.modules.challenges.service import ChallengeNotFound, ChallengeConflict
 from app.modules.users.auth_service import PermissionDenied
 from app.modules.attempts.service import AttemptNotFound, AttemptConflict
+from app.modules.evaluation.service import EvaluationNotFound, EvaluationConflict, EvaluationSkillsMismatch
+
+
+async def evaluation_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    if isinstance(exc, EvaluationNotFound):
+        status, detail = 404, "Avaliação ou tentativa não encontrada."
+    elif isinstance(exc, EvaluationSkillsMismatch):
+        status, detail = 422, "Informe exatamente as skills do contexto da tentativa."
+    else:
+        status, detail = 409, str(exc)
+    return JSONResponse(status_code=status, content={"detail": detail}, headers={"Cache-Control": "no-store"})
 
 
 async def attempt_error_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -66,4 +77,4 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
          "type": error["type"], "msg": "Entrada inválida."}
         for error in exc.errors()
     ]
-    return JSONResponse(status_code=422, content={"detail": errors})
+    return JSONResponse(status_code=422, content={"detail": errors}, headers={"Cache-Control": "no-store"})

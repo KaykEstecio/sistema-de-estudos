@@ -1,6 +1,16 @@
-"""Visibilidade do catálogo conforme a role autenticada."""
+"""Catálogo e aplicação da política de progresso por habilidade."""
 
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
+from decimal import Decimal
+from app.modules.attempts.models import ChallengeAttempt
+from app.modules.attempts.schemas import ChallengeSnapshot
+from app.modules.evaluation.models import AttemptEvaluation
+from app.modules.evaluation.schemas import EvaluationCreate
+from app.modules.skills.progress_repository import ProgressRepository
+from app.modules.skills.progress_models import UserSkill, SkillEvidence
+from app.modules.skills.progress_schemas import ProgressState, ProgressQuery, UserSkillPage, UserSkillRead
+from app.modules.skills.policy import INITIAL_SCORE, POLICY_VERSION, EvidenceTotals, calculate_change
 from sqlalchemy.exc import IntegrityError
 from app.modules.categories.repository import CategoryRepository
 from app.modules.categories.service import CategoryNotFound
@@ -20,6 +30,54 @@ class SkillSlugConflict(Exception):
 
 
 class SkillService:
+    def list_owned_progress(self, user_id: int, query: ProgressQuery) -> UserSkillPage:
+        items, total = ProgressRepository(self.session).list_owned(user_id, query.limit, query.offset)
+        return UserSkillPage(items=[UserSkillRead.model_validate(item) for item in items],
+                             total=total, limit=query.limit, offset=query.offset)
+
+    def apply_evaluation(self, attempt: ChallengeAttempt, evaluation: AttemptEvaluation,
+                         data: EvaluationCreate) -> None:
+        """Chamado somente para avaliação nova, dentro da transação do coordenador."""
+        if evaluation.attempt_id != attempt.id or attempt.status != "SUBMITTED" or attempt.submitted_at is None:
+            raise ValueError("Avaliação incompatível com a tentativa.")
+        snapshot = ChallengeSnapshot.model_validate(attempt.challenge_snapshot)
+        weights = {item.skill_id: item.weight for item in snapshot.skills}
+        if set(weights) != {item.skill_id for item in data.skills}:
+            raise ValueError("Skills incompatíveis com o contexto histórico.")
+        repository = ProgressRepository(self.session)
+        repository.lock_user(attempt.user_id)
+        for item in data.skills:
+            evidence = SkillEvidence(user_id=attempt.user_id, skill_id=item.skill_id,
+                evaluation_id=evaluation.id, policy_version=POLICY_VERSION, applied=False)
+            if item.classification == "INSUFFICIENT_EVIDENCE":
+                repository.save(None, evidence)
+                continue
+            progress = repository.get(attempt.user_id, item.skill_id)
+            if progress is None:
+                initial = repository.initial_result(attempt.user_id, item.skill_id, attempt.started_at)
+                score = initial.score if initial else INITIAL_SCORE
+                progress = UserSkill(user_id=attempt.user_id, skill_id=item.skill_id,
+                    score=score, initial_score=score, initial_assessment_id=initial.assessment_id if initial else None,
+                    confidence=Decimal(0), attempts=0, successful_attempts=0,
+                    mass=Decimal(0), residual_sum=Decimal(0), squared_residual_sum=Decimal(0),
+                    last_practiced_at=attempt.submitted_at)
+            before = ProgressState.model_validate(progress)
+            change = calculate_change(progress.score, snapshot.difficulty_score, weights[item.skill_id],
+                attempt.attempt_number, item.classification,
+                EvidenceTotals(progress.mass, progress.residual_sum, progress.squared_residual_sum))
+            progress.score, progress.confidence = change.score, change.confidence
+            progress.mass = change.totals.mass
+            progress.residual_sum = change.totals.residual_sum
+            progress.squared_residual_sum = change.totals.squared_residual_sum
+            progress.attempts += 1
+            progress.successful_attempts += int(change.successful)
+            progress.last_practiced_at = max(progress.last_practiced_at, attempt.submitted_at)
+            progress.updated_at = datetime.now(timezone.utc)
+            evidence.applied = True
+            evidence.before_state = before.model_dump(mode="json")
+            evidence.after_state = ProgressState.model_validate(progress).model_dump(mode="json")
+            repository.save(progress, evidence)
+
     def __init__(self, session: Session) -> None:
         self.repository = SkillRepository(session)
         self.session = session

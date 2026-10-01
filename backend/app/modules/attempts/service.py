@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.modules.attempts.repository import AttemptRepository
-from app.modules.attempts.schemas import AttemptDraft, AttemptRead, ChallengeSnapshot
+from app.modules.attempts.schemas import AttemptDraft, AttemptRead, ChallengeSnapshot, AttemptPage, AttemptQuery, AttemptSummary
 from app.modules.challenges.repository import ChallengeRepository
 from app.modules.users.auth_service import InvalidCredentials
 
@@ -23,6 +23,11 @@ class AttemptService:
         self.session = session
         self.repository = AttemptRepository(session)
         self.challenges = ChallengeRepository(session)
+
+    def list_owned(self, user_id: int, query: AttemptQuery) -> AttemptPage:
+        rows, total = self.repository.list_owned(user_id, query.limit, query.offset)
+        return AttemptPage(items=[AttemptSummary.model_validate(row) for row in rows],
+                           total=total, limit=query.limit, offset=query.offset)
 
     def start(self, user_id: int, challenge_id: int) -> tuple[AttemptRead, bool]:
         try:

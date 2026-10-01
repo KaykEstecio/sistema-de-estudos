@@ -48,6 +48,10 @@ ser enviado/alterado pelo cliente e não é refeito em retomada ou submit.
 
 ## HTTP
 
+Extensão S10-T03: listagem paginada exclusiva do dono em GET /api/v1/attempts,
+conforme [ATTEMPT_EXPERIENCE_CONTRACT.md](ATTEMPT_EXPERIENCE_CONTRACT.md).
+As operações individuais abaixo mantêm seus contratos e não aceitam paginação.
+
 Todas as rotas exigem Bearer token e usam Cache-Control: no-store. IDs positivos
 até 2147483647; rejeitar queries extras em todas as operações.
 

@@ -1,40 +1,56 @@
-import { useEffect, useState } from 'react'
-import { checkHealth } from './services/health'
+import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router'
+import { AuthProvider, useAuth } from './auth'
+import AuthPage from './pages/AuthPage'
+import OnboardingPage from './pages/OnboardingPage'
+import DiagnosticPage from './pages/DiagnosticPage'
+import AssessmentPage from './pages/AssessmentPage'
+import DashboardPage from './pages/DashboardPage'
+import AttemptsPage, { AttemptDetailPage } from './pages/AttemptsPage'
 
+function Shell() {
+  const { user, logout } = useAuth()
+  const location = useLocation()
+  return <><a className="skip" href="#content">Pular para o conteúdo</a><header>
+    <Link to="/" className="brand" aria-label="CodeTrack, início">Code<span>Track</span></Link>
+    <nav aria-label="Principal">{user ? <><Link to="/dashboard">Meu painel</Link><Link to="/tentativas">Tentativas</Link><Link to="/onboarding">Meu perfil</Link><Link to="/diagnostico">Diagnóstico</Link><button onClick={logout} className="text-button">Sair</button></> : <Link to={location.pathname === '/cadastro' ? '/entrar' : '/cadastro'}>{location.pathname === '/cadastro' ? 'Entrar' : 'Criar conta'}</Link>}</nav>
+  </header><div id="content"><Outlet /></div></>
+}
+function Protected() {
+  const { user } = useAuth()
+  const location = useLocation()
+  return user ? <Outlet /> : <Navigate to="/entrar" replace state={{ from: location.pathname }} />
+}
+function Home() {
+  const { user } = useAuth()
+  return <Navigate replace to={user ? user.onboarding_completed ? '/dashboard' : '/onboarding' : '/entrar'} />
+}
+function DiagnosticEntry() {
+  const { user } = useAuth()
+  return user?.onboarding_completed ? <DiagnosticPage /> : <Navigate to="/onboarding" replace />
+}
 export default function App() {
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
-  const [attempt, setAttempt] = useState(0)
+  return <BrowserRouter><AuthProvider><Routes><Route element={<Shell />}>
+    <Route index element={<Home />} />
+    <Route path="entrar" element={<AuthPage key="login" />} />
+    <Route path="cadastro" element={<AuthPage key="register" register />} />
+    <Route element={<Protected />}>
+      <Route path="dashboard" element={<DashboardEntry />} />
+      <Route path="tentativas" element={<AttemptsEntry />} />
+      <Route path="tentativas/:id" element={<AttemptDetailPage />} />
+      <Route path="onboarding" element={<OnboardingPage />} />
+      <Route path="diagnostico" element={<DiagnosticEntry />} />
+      <Route path="diagnostico/:id" element={<AssessmentPage />} />
+    </Route>
+    <Route path="*" element={<main className="auth-main"><h1>Página não encontrada</h1><Link to="/">Voltar ao início</Link></main>} />
+  </Route></Routes></AuthProvider></BrowserRouter>
+}
 
-  useEffect(() => {
-    const controller = new AbortController()
-    checkHealth(controller.signal).then(
-      () => { if (!controller.signal.aborted) setStatus('success') },
-      () => { if (!controller.signal.aborted) setStatus('error') },
-    )
-    return () => controller.abort()
-  }, [attempt])
+function DashboardEntry() {
+  const { user } = useAuth()
+  return <DashboardPage key={user?.id} />
+}
 
-  function retry() {
-    setStatus('loading')
-    setAttempt((previous) => previous + 1)
-  }
-
-  return (
-    <main>
-      <h1>CodeTrack</h1>
-      <p>Aprendizagem e prática de programação.</p>
-      <p className="note">Estamos preparando a plataforma.</p>
-      <section aria-labelledby="connection-title">
-        <h2 id="connection-title">Conexão com o servidor</h2>
-        <p role="status">
-          {status === 'loading' && 'Verificando conexão…'}
-          {status === 'success' && 'Servidor disponível.'}
-          {status === 'error' && 'Não foi possível conectar ao servidor. Tente novamente.'}
-        </p>
-        <button type="button" onClick={retry} disabled={status === 'loading'}>
-          Verificar novamente
-        </button>
-      </section>
-    </main>
-  )
+function AttemptsEntry() {
+  const { user } = useAuth()
+  return <AttemptsPage key={user?.id} />
 }

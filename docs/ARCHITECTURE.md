@@ -82,6 +82,10 @@ Não criar todos os módulos antecipadamente se ainda não forem necessários.
 
 # 4. Camadas
 
+Frontend S6A: [jornada e integração](FRONTEND_JOURNEY.md) define rotas,
+sessão Bearer em memória, cliente Axios e proxy local. Contrato definido;
+implementação começa na S6A-T02, sem alteração de autenticação no backend.
+
 ## Router
 
 Responsável por:
@@ -313,6 +317,12 @@ is_active
 ---
 
 ## UserSkill
+
+Implementado na Sprint 7A, incluindo origem inicial e acumuladores Decimal além
+dos campos conceituais abaixo. SkillEvidence registra aplicação/descarte e estados
+antes/depois. Contrato físico: [USER_SKILL_STORAGE.md](USER_SKILL_STORAGE.md).
+EvaluationService coordena o commit; SkillService aplica a política; o repository
+persiste sem commit. Consulta autenticada: [USER_SKILL_API.md](USER_SKILL_API.md).
 
 ```text
 id
@@ -672,7 +682,8 @@ GET /api/v1/users/me/skills
 ### Contratos do catálogo — decisão S2-T01
 
 Consultas GET implementadas na S2-T04; escrita POST/PATCH implementada na S2-T05. A rota
-`/users/me/skills` acima é FUTURO, pois depende de UserSkill.
+`/users/me/skills` implementado na S7A-T04: consulta paginada exclusiva do dono.
+Contrato e validação em [USER_SKILL_API.md](USER_SKILL_API.md).
 
 | Método | Caminho | Permissão | Sucesso |
 | --- | --- | --- | --- |
@@ -818,6 +829,10 @@ POST /api/v1/attempts/{id}/hint
 
 ## Recommendations
 
+Contrato S8-T03 e estratégia de consulta em [RECOMMENDATION_API.md](RECOMMENDATION_API.md).
+Schemas e endpoint implementados na S8-T05. Seleção calculada sob demanda,
+sem persistir a entidade conceitual Recommendation neste recorte.
+
 ```text
 GET /api/v1/recommendations
 ```
@@ -825,6 +840,10 @@ GET /api/v1/recommendations
 ---
 
 ## Dashboard
+
+Contrato S9-T02 em [DASHBOARD_API.md](DASHBOARD_API.md): resumo exclusivo do dono,
+contagens de tentativas sem duplicação e progresso paginado com nomes atuais.
+Endpoint implementado na S9-T03; não houve nova persistência. Frontend pendente.
 
 ```text
 GET /api/v1/dashboard

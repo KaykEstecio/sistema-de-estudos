@@ -1,5 +1,8 @@
 # CodeTrack
 
+Para abrir o projeto no computador, siga [Iniciar os serviços](#iniciar-os-serviços).
+Na primeira execução, faça antes a [Preparação inicial](#preparação-inicial).
+
 ## Estado de implementação
 
 Sprint 1 concluída: cadastro, login JWT, identidade autenticada e verificação
@@ -13,14 +16,58 @@ importação local de questões revisadas ([fechamento](docs/SPRINT_4.md)).
 Sprint 5 — Challenges concluída: catálogo autenticado, API administrativa,
 publicação e integração validados ([fechamento](docs/SPRINT_5.md)).
 Sprint 6 — Attempts concluída: início, retomada, rascunho, submissão e histórico
-validados ([fechamento](docs/CURRENT_SPRINT.md)).
+validados ([fechamento](docs/SPRINT_6.md)).
+Sprint 6A — Frontend dos fluxos iniciais: jornada e integração definidas para
+cadastro/login, onboarding e diagnóstico implementados e validados
+([plano atual](docs/CURRENT_SPRINT.md), [jornada](docs/FRONTEND_JOURNEY.md)).
+Sprint 6A concluída; evidências e limites no [fechamento](docs/SPRINT_6A.md).
 
 Sprint 0 concluída: backend FastAPI, frontend React + TypeScript + Vite,
 PostgreSQL com Docker, SQLAlchemy, Alembic e comunicação via `/health`.
-A migration inicial cria a tabela users. A interface continua como verificação
-de conectividade; telas de autenticação e funcionalidades de aprendizagem são FUTURO.
+A migration inicial cria a tabela users. A interface oferece cadastro e login;
+o onboarding está disponível em `/onboarding` após entrar. Sem categorias no
+banco, a tela explica a ausência e bloqueia o envio. Em `/diagnostico`, escolha
+de 1 a 3 habilidades, salve cada resposta e conclua para ver o resultado.
+Guarde o link ou o número para retomar; o navegador também oferece o último
+diagnóstico acessado pela conta. Apenas respostas salvas são persistidas.
+É necessário ter skills e questões revisadas cadastradas para iniciar.
+
+Sprint 7 — Avaliação manual concluída no recorte qualitativo
+([fechamento e limites](docs/SPRINT_7.md)). O ADMIN consulta uma tentativa submetida em
+`GET /api/v1/reviews/attempts/{id}` e registra feedback em
+`POST /api/v1/reviews/attempts/{id}/evaluation`. O dono consulta em
+`GET /api/v1/attempts/{id}/evaluation`. Uso pelo Swagger nesta etapa, sem painel
+administrativo. Entrada e permissões no [contrato](docs/EVALUATION_CONTRACT.md).
+É necessário aplicar a migration 0007 usando as instruções de Alembic abaixo.
+O recorte qualitativo original não atualizava score/UserSkill; a Sprint 7A
+acrescenta esse comportamento para avaliações novas, conforme descrito abaixo.
+
+Sprint 7A — UserSkill concluída ([validação e limites](docs/SPRINT_7A.md)):
+política determinística experimental, persistência de
+progresso, histórico de evidências e integração atômica com avaliações novas.
+Consulta exclusiva do próprio usuário em `GET /api/v1/users/me/skills`, disponível
+pelo Swagger e agora no painel da Sprint 9. Contratos de [política](docs/USER_SKILL_POLICY_DRAFT.md),
+[persistência](docs/USER_SKILL_STORAGE.md) e [API](docs/USER_SKILL_API.md).
+Antes de iniciar esta versão, execute `alembic upgrade head` conforme as instruções
+abaixo, incluindo a migration 0008. Avaliações antigas não são convertidas.
+Score e confiança não representam domínio comprovado; a política não foi calibrada.
+
+Sprint 8 — Recomendação concluída no backend ([validação e limites](docs/SPRINT_8.md)):
+`GET /api/v1/recommendations?skill_id=1&limit=5`, com Bearer autenticado.
+Informe o ID de uma skill ativa pertencente aos seus interesses. O resultado
+considera evidências por habilidade, dificuldade e histórico; cada sugestão
+explica sua seleção. Sem progresso, usa diagnóstico disponível ou exploração
+introdutória. Uma lista vazia indica ausência de candidatos elegíveis.
+Uso pelo Swagger; nenhuma nova tela ou migration nesta Sprint. A consulta não
+inicia tentativa nem altera progresso. [Contrato](docs/RECOMMENDATION_API.md) e
+[política experimental](docs/RECOMMENDATION_POLICY.md).
 
 ## Executar localmente
+
+Sprint 9 concluída: após login e onboarding, `/dashboard` mostra resumo,
+progresso paginado e recomendações por skill selecionada. “Ver desafio” abre o
+enunciado em modo de leitura; resolução pela interface permanece para a Sprint 10.
+Contas sem onboarding chegam ao perfil. [Validação e limites](docs/SPRINT_9.md).
 
 Requisitos: Python 3.12+, Node.js 22.12+ e Docker Desktop com engine Linux
 e Docker Compose. Validado no Windows com Python 3.12.10 e Node 24.14.1.
@@ -46,29 +93,56 @@ Os exemplos não contêm credenciais reais; os arquivos `.env` não são version
 
 ### Iniciar os serviços
 
-Primeiro, inicie o banco:
+Use este procedimento sempre que quiser ver o projeto. Abra o Docker Desktop
+e aguarde o engine iniciar. Abra dois terminais PowerShell na pasta raiz do
+projeto (a pasta que contém este README, backend e frontend).
+
+**Terminal 1 — banco e API:** inicie o banco e aplique as migrations:
 
 ```powershell
 docker compose up -d --wait --wait-timeout 60
 & backend/.venv/Scripts/python.exe -m alembic -c backend/alembic.ini upgrade head
 ```
 
-Em um terminal, inicie a API:
+Se os comandos acima terminarem sem erro, inicie a API no mesmo terminal:
 
 ```powershell
 & backend/.venv/Scripts/python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
 ```
 
-Em outro terminal, inicie o frontend:
+Deixe esse terminal aberto. **Terminal 2 — frontend:**
 
 ```powershell
 npm --prefix frontend run dev
 ```
 
-Abra <http://127.0.0.1:5173> (ou a porta informada pelo Vite).
-A página deve mostrar “Servidor disponível”. O proxy local encaminha `/health`
-à API na porta 8000. A documentação da API fica em <http://127.0.0.1:8000/docs>.
+Deixe o segundo terminal aberto e acesse:
+
+| Endereço | O que visualizar |
+| --- | --- |
+| <http://127.0.0.1:5173> | Frontend; use a porta indicada pelo Vite se for diferente |
+| <http://127.0.0.1:8000/docs> | Swagger para testar cadastro, login, catálogo, diagnóstico e tentativas |
+| <http://127.0.0.1:8000/health> | Verificação da API: resposta `{"status":"ok"}` |
+
+A interface atual permite cadastro, login e logout. Recarregar a página exige
+novo login porque o token fica somente em memória. Perfil e diagnóstico ainda
+exibem aviso de próxima etapa; os demais fluxos podem ser testados no Swagger.
+Para endpoints protegidos, faça login em `/api/v1/auth/login`
+e use o access_token no botão **Authorize**. Operações administrativas exigem ADMIN.
+Os fluxos estão descritos no [README do backend](backend/README.md).
+
+O proxy local encaminha `/health` e `/api/v1` à API na porta 8000.
 O proxy de desenvolvimento não acompanha os arquivos estáticos de produção.
+
+Se não abrir: confirme que os dois terminais continuam rodando. Se o frontend
+mostrar servidor indisponível, confira a API em `/health`. Se login ou operações
+com dados falharem, confira `docker compose ps` e as migrations; `/health` não
+testa a conexão com o PostgreSQL. Erro de conexão com Docker exige iniciar o
+Docker Desktop. Porta 8000 ocupada exige encerrar a outra instância da API antes
+de repetir o comando; o proxy do frontend espera essa porta.
+
+Para encerrar, pressione **Ctrl+C** nos dois terminais e execute
+`docker compose stop` na raiz para parar o banco preservando os dados.
 
 ### Conferir o ambiente
 

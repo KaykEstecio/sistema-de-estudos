@@ -2,12 +2,36 @@
 
 from typing import Annotated, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, StringConstraints, field_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from app.modules.challenges.schemas import Title, Description, ChallengeType, Difficulty, Score, Minutes, StarterCode, SkillList, ChallengeSkillInput
 
 DraftAnswer = Annotated[str, StringConstraints(strict=True, max_length=20000)]
 AttemptStatus = Literal["IN_PROGRESS", "SUBMITTED"]
+
+
+class AttemptQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
+    limit: int = Field(default=10, ge=1, le=50)
+    offset: int = Field(default=0, ge=0)
+
+
+class AttemptSummary(BaseModel):
+    id: int
+    challenge_id: int
+    title: Title
+    status: AttemptStatus
+    attempt_number: int
+    started_at: AwareDatetime
+    submitted_at: AwareDatetime | None
+    last_activity_at: AwareDatetime
+
+
+class AttemptPage(BaseModel):
+    items: list[AttemptSummary]
+    total: int
+    limit: int
+    offset: int
 
 
 class AttemptDraft(BaseModel):
