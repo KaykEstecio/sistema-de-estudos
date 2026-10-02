@@ -489,7 +489,9 @@ histórico de evidências e consulta exclusiva do dono. Recommendation Engine
 foi implementado no recorte por skill focal da Sprint 8, com política determinística
 experimental e consulta autenticada. Dashboard implementado na Sprint 9, incluindo
 progresso, recomendações e detalhe somente leitura. Resolução de desafios no
-frontend está planejada na Sprint 10, ainda não implementada; recorte em
+frontend implementada na Sprint 10: listagem/retomada de tentativas, resposta
+textual, salvamento explícito, envio confirmado e leitura da avaliação manual.
+Revisão ADMIN usa a API existente; painel administrativo permanece FUTURO. Recorte em
 [CHALLENGE_EXPERIENCE_PLAN.md](CHALLENGE_EXPERIENCE_PLAN.md).
 Contrato em [RECOMMENDATION_API.md](RECOMMENDATION_API.md).
 Contratos de progresso em

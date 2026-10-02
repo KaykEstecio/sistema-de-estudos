@@ -217,6 +217,41 @@ corpo exato, presença no OpenAPI e rejeição de POST com 405.
 
 ## Testes automatizados
 
+Modos de qualidade implementados na S11-T03, a partir da raiz:
+
+```powershell
+& backend/.venv/Scripts/python.exe -m pytest backend/tests --quality-mode=fast -q -W error
+& backend/.venv/Scripts/python.exe -m pytest backend/tests --quality-mode=complete -q -W error
+```
+
+`fast` deseleciona testes cuja cadeia de fixtures depende de migrated_database;
+não acessa PostgreSQL e não representa validação completa. `complete` exige
+CODETRACK_TEST_ADMIN_URL no ambiente, no formato postgresql+psycopg, e banco
+disponível com permissão para criar/remover bancos descartáveis. Verifica SELECT 1
+antes dos testes, com timeout de conexão/consulta, sem expor credenciais.
+Qualquer skip torna a execução completa reprovada. Não carrega .env automaticamente
+nem inicia Docker. Configure o ambiente local e inicie `docker compose up -d db --wait`
+quando usar o PostgreSQL de desenvolvimento como servidor dos bancos descartáveis.
+Nunca use servidor de produção para os testes.
+
+Para carregar apenas a URL local já configurada sem imprimi-la, use o Python do
+ambiente (python-dotenv já é dependência), a partir da raiz:
+
+```powershell
+@'
+import os
+from dotenv import dotenv_values
+import pytest
+os.environ['CODETRACK_TEST_ADMIN_URL'] = dotenv_values('backend/.env')['DATABASE_URL']
+raise SystemExit(pytest.main(['backend/tests', '--quality-mode=complete', '-q', '-W', 'error']))
+'@ | & backend/.venv/Scripts/python.exe -
+```
+
+Somente bancos com nomes aleatórios gerados pela fixture são migrados/removidos.
+Histórico de resultados abaixo pertence às etapas antigas; contrato vigente em
+`docs/QUALITY_CONTRACT.md`. Execução sem --quality-mode continua compatível com
+o comportamento anterior de integração opt-in:
+
 Na raiz do repositório, após instalar `backend/requirements.txt`:
 
 ```powershell

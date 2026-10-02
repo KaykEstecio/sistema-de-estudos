@@ -1,8 +1,12 @@
 # Experiência de tentativas — contrato S10-T02
 
 Definido em 01/10/2026. Listagem implementada na S10-T03. Interface de lista,
-início/retomada e leitura implementada na S10-T04, com QA específico pendente.
-Edição/envio e consulta de avaliação ainda pendentes.
+início/retomada e leitura implementada na S10-T04, com QA específico aprovado
+em 02/10/2026 usando API controlada.
+Edição/envio implementados e validados com API controlada na S10-T05 em
+02/10/2026. Consulta de avaliação implementada e validada com API controlada
+na S10-T06. Integração real e fechamento concluídos na S10-T07 em 02/10/2026;
+evidências finais em [SPRINT_10.md](SPRINT_10.md).
 Complementa [ATTEMPT_CONTRACT.md](ATTEMPT_CONTRACT.md) sem alterar suas operações.
 Escopo em [CHALLENGE_EXPERIENCE_PLAN.md](CHALLENGE_EXPERIENCE_PLAN.md).
 
@@ -163,3 +167,80 @@ python -m pytest backend/tests/test_attempt_history.py backend/tests/test_attemp
 Inclui READ ONLY, consulta única, isolamento entre contas/ADMIN, título histórico
 de desafio inativo, desempate, limites/extras e página além do total. Regressão
 completa e testes da interface ficam para as tarefas seguintes da Sprint.
+
+## Validação S10-T04 — 02/10/2026
+
+Playwright com Chrome em http://127.0.0.1:5173, respostas HTTP controladas,
+viewports 1440x1000 e 390x844. Browser plugin não disponível; utilizado Playwright
+já instalado, sem dependência adicionada ao projeto. Script temporário fora do
+repositório: `%TEMP%/codetrack-attempts-check.cjs`.
+
+Jornadas lista → paginação → envio histórico e painel → desafio → iniciar/retomar
+aprovadas. Verificados rascunho, snapshot, texto escapado, foco no título, falha
+503 com retry, vazio, 404 no início e detalhe, POST sem corpo, retorno à tentativa
+após recarregar e fazer login, e limpeza de conteúdo ao trocar de conta.
+Não houve erros JavaScript inesperados, overlay ou overflow horizontal.
+Screenshots inspecionados: `%TEMP%/codetrack-attempt-desktop.png` e
+`%TEMP%/codetrack-attempt-mobile.png`.
+
+O bloqueio anterior de criação do script não persistiu nesta etapa. A primeira
+execução revelou simulação de falha transitória consumida pela leitura dupla do
+StrictMode; manter 503 até a ação de retry corrigiu o teste. Nenhum ajuste de código
+da aplicação foi necessário. Edição/envio não entram nesta validação; integração
+com API real e regressão completa permanecem S10-T07.
+
+## Implementação e validação S10-T05 — 02/10/2026
+
+Editor em AttemptAnswer.tsx mantém resposta local e confirmada separadas;
+services/attempts.ts chama PATCH e submit sequencialmente. Texto não é persistido
+no navegador. Salvamento vazio permitido, limite contado em pontos de código
+Unicode; resposta enviada somente leitura. Recuperação consulta GET após envio
+incerto/409 e preserva texto divergente para cópia. Sessão expirada limpa os dados.
+
+App.tsx passou de BrowserRouter/Routes para createBrowserRouter/RouterProvider,
+da mesma dependência React Router, para usar useBlocker em links e histórico.
+Rotas e provedores mantidos; sem alteração de stack ou arquitetura de domínio.
+exitGuard.tsx compartilha apenas o aviso de logout; beforeunload cobre recarga
+quando permitido. Encerramento abrupto e sobrescrita entre abas continuam limites
+documentados. A configuração do router aumenta o bundle por incluir seu runtime
+de navegação com bloqueio; nenhum pacote foi adicionado.
+
+`npm run build` passou (inclui TypeScript). Playwright/Chrome, API controlada,
+http://127.0.0.1:5173, 1440x1000 e 390x844. Browser plugin não disponível.
+Script `%TEMP%/codetrack-answer-check.cjs` aprovado: espaços/Unicode preservados,
+salvamento vazio, saída por link/histórico/logout cancelada, envio cancelado,
+PATCH 503 impede submit, ordem PATCH → submit, perda de resposta com envio
+confirmado via GET, GET indisponível bloqueia ações até retry, 409 preserva versão
+local, 20000 emojis aceitos/20001 bloqueados e 401 exige novo login com rascunho
+persistido. Sem overlay, erro JavaScript inesperado ou overflow horizontal.
+
+Regressões `%TEMP%/codetrack-attempts-check.cjs` e
+`%TEMP%/codetrack-recommendations-qa.cjs` também passaram após ajuste da expectativa
+de leitura para o editor. Screenshots inspecionados:
+`%TEMP%/codetrack-answer-desktop.png` e `%TEMP%/codetrack-answer-mobile.png`.
+Integração com API real, avaliação e regressão completa permanecem nas tarefas
+seguintes; não foram declaradas como validadas por estes mocks.
+
+## Implementação e validação S10-T06 — 02/10/2026
+
+AttemptEvaluation.tsx lê a avaliação via services/evaluation.ts apenas quando
+a tentativa já foi confirmada como SUBMITTED. Apresenta feedback escapado,
+rubrica/data, justificativas e classificações por ID histórico da skill.
+Evidência insuficiente recebe explicação própria; nenhuma nota é inventada.
+Após 404, GET da tentativa confirma ownership e status antes de indicar espera.
+Falha nessa confirmação apresenta erro. Atualização manual, sem polling;
+retorno ao painel consulta o progresso real no fluxo existente.
+
+Build/TypeScript aprovados. Playwright/Chrome com API controlada em
+http://127.0.0.1:5173, desktop 1440x1000 e mobile 390x844. Browser plugin ausente.
+Script externo `%TEMP%/codetrack-evaluation-check.cjs` aprovado: espera versus
+503, atualização para resultado, quatro classificações, texto escapado,
+resposta somente leitura, revalidação de acesso, cancelamento ao sair da rota,
+nenhuma consulta para rascunho, 401 limpa conteúdo e ausência de polling.
+Sem erros JS inesperados, overlay ou overflow horizontal.
+Screenshots inspecionados: `%TEMP%/codetrack-evaluation-desktop.png` e
+`%TEMP%/codetrack-evaluation-mobile.png`.
+
+Regressões de editor/envio e lista/início também passaram. A fixture de editor
+agora retorna 404 da avaliação para representar revisão pendente. Integração
+com revisão real por ADMIN e atualização de UserSkill continua na S10-T07.

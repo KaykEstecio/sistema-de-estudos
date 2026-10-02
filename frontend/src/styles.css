@@ -113,3 +113,12 @@ textarea { resize: vertical; }
 .attempt-detail h2 { font-size: 22px; font-weight: 600; margin: 28px 0 12px; }
 .attempt-detail pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f2f7f6; padding: 20px; border-radius: 6px; }
 .attempt-detail .eyebrow { margin-top: 24px; }
+.attempt-answer label { display: block; font-weight: 600; margin-bottom: 12px; }
+.attempt-answer textarea { width: 100%; padding: 14px; border: 1px solid #9bb5b2; border-radius: 6px; font-family: monospace; resize: vertical; }
+.attempt-actions { display: flex; flex-wrap: wrap; gap: 16px; margin: 20px 0; }
+.attempt-actions .primary { width: auto; }
+.attempt-evaluation { margin-top: 32px; padding-top: 16px; border-top: 1px solid #dce4e7; }
+.attempt-evaluation h3 { font-size: 20px; font-weight: 600; margin: 24px 0 12px; }
+.evaluation-skills { list-style: none; padding: 0; }
+.evaluation-skills li { padding: 20px 0; border-bottom: 1px solid #dce4e7; }
+.evaluation-skills h4 { font-weight: 600; margin-bottom: 12px; }

@@ -5,6 +5,11 @@ Na primeira execução, faça antes a [Preparação inicial](#preparação-inici
 
 ## Estado de implementação
 
+Sprint 11 — testes e qualidade concluída: modos backend fast/complete, harness
+reproduzível de navegador, revisão de sessão/acesso/teclado e workflow Quality.
+Validação local: 340 testes backend e 11 navegador aprovados; CI remota ainda
+não executada. Evidências e limites no [fechamento](docs/SPRINT_11.md).
+
 Sprint 1 concluída: cadastro, login JWT, identidade autenticada e verificação
 de permissões no backend. Evidências no [fechamento da Sprint 1](docs/SPRINT_1.md).
 Sprint 2 — Categories + Skills concluída: persistência, consulta autenticada,
@@ -66,8 +71,13 @@ inicia tentativa nem altera progresso. [Contrato](docs/RECOMMENDATION_API.md) e
 
 Sprint 9 concluída: após login e onboarding, `/dashboard` mostra resumo,
 progresso paginado e recomendações por skill selecionada. “Ver desafio” abre o
-enunciado em modo de leitura; resolução pela interface permanece para a Sprint 10.
-Contas sem onboarding chegam ao perfil. [Validação e limites](docs/SPRINT_9.md).
+enunciado. A Sprint 10 adiciona iniciar/retomar tentativa, `/tentativas` para
+recuperar rascunhos/envios, salvar resposta textual, enviar para revisão manual
+e consultar feedback por habilidade. Respostas enviadas ficam somente leitura.
+Use um desafio publicado por ADMIN; a aplicação não cria conteúdo automaticamente.
+Contrato em [ATTEMPT_EXPERIENCE_CONTRACT.md](docs/ATTEMPT_EXPERIENCE_CONTRACT.md).
+Contas sem onboarding chegam ao perfil. Validação e limites:
+[Sprint 9](docs/SPRINT_9.md) e [Sprint 10](docs/SPRINT_10.md).
 
 Requisitos: Python 3.12+, Node.js 22.12+ e Docker Desktop com engine Linux
 e Docker Compose. Validado no Windows com Python 3.12.10 e Node 24.14.1.
@@ -124,9 +134,10 @@ Deixe o segundo terminal aberto e acesse:
 | <http://127.0.0.1:8000/docs> | Swagger para testar cadastro, login, catálogo, diagnóstico e tentativas |
 | <http://127.0.0.1:8000/health> | Verificação da API: resposta `{"status":"ok"}` |
 
-A interface atual permite cadastro, login e logout. Recarregar a página exige
-novo login porque o token fica somente em memória. Perfil e diagnóstico ainda
-exibem aviso de próxima etapa; os demais fluxos podem ser testados no Swagger.
+A interface permite cadastro, login, perfil, diagnóstico, painel e tentativas,
+incluindo consulta de feedback por habilidade. Recarregar a página exige novo
+login porque o token fica somente em memória. Administração de conteúdo e
+revisão manual são realizadas pelo Swagger nesta etapa.
 Para endpoints protegidos, faça login em `/api/v1/auth/login`
 e use o access_token no botão **Authorize**. Operações administrativas exigem ADMIN.
 Os fluxos estão descritos no [README do backend](backend/README.md).
@@ -147,7 +158,7 @@ Para encerrar, pressione **Ctrl+C** nos dois terminais e execute
 ### Conferir o ambiente
 
 ```powershell
-& backend/.venv/Scripts/python.exe -m pytest backend/tests -q
+& backend/.venv/Scripts/python.exe -m pytest backend/tests --quality-mode=complete -q -W error
 & backend/.venv/Scripts/python.exe -m alembic -c backend/alembic.ini check
 npm --prefix frontend run build
 Push-Location backend
@@ -155,12 +166,22 @@ Push-Location backend
 Pop-Location
 ```
 
-Com CODETRACK_TEST_ADMIN_URL configurada, 206 testes passam, incluindo 33
-testes PostgreSQL que criam e removem bancos descartáveis. Sem essa variável,
-esses 33 são pulados. Consulte [testes do backend](backend/README.md).
+O modo `complete` exige CODETRACK_TEST_ADMIN_URL e PostgreSQL disponível; falha
+antes dos testes se faltar configuração e reprova qualquer skip. Para checagem
+sem banco, use `--quality-mode=fast`, que deseleciona integrações explicitamente.
+Configuração e comandos seguros em [testes do backend](backend/README.md).
 Alembic deve indicar ausência de novas operações e o build deve concluir.
-`/health` não consulta o banco. Na conclusão da Sprint 6, os 206 testes passaram
-com `-W error`; Alembic, dependências e build também foram validados.
+`/health` não consulta o banco. Evidências atuais e limites ficam no
+[contrato de qualidade](docs/QUALITY_CONTRACT.md); números históricos de outras
+Sprints não substituem a validação atual.
+
+Para testes de navegador, instale Chromium e execute a jornada descartável
+conforme [QA do frontend](frontend/e2e/README.md). O
+[workflow Quality](.github/workflows/quality.yml) verifica backend completo,
+dependências, build e navegador em pushes, pull requests e execução manual.
+Usa PostgreSQL 17 de teste e não depende de secrets ou `.env` pessoais.
+Configuração versionada não significa execução remota aprovada; consulte
+o resultado na aba Actions do GitHub após publicar as mudanças.
 
 Para encerrar API e frontend, use Ctrl+C nos respectivos terminais.
 Para parar o banco mantendo os dados, use `docker compose stop`.

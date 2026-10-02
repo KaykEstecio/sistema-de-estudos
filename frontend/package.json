@@ -10,7 +10,11 @@
     "dev": "vite --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck:e2e": "tsc --noEmit -p tsconfig.e2e.json",
+    "test:e2e": "npm run typecheck:e2e && playwright test",
+    "test:e2e:controlled": "npm run test:e2e -- --project=controlled-desktop --project=controlled-mobile",
+    "test:e2e:real": "npm run test:e2e -- --project=real"
   },
   "dependencies": {
     "axios": "1.20.0",
@@ -19,6 +23,7 @@
     "react-router": "^8.4.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "26.6.2",
     "@types/react": "19.3.0",

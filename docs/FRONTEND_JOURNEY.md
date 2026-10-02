@@ -172,3 +172,30 @@ Sem overlay, overflow horizontal ou erros inesperados de JavaScript/console;
 404/503 foram simulados intencionalmente. Browser plugin ausente; Playwright
 do cache, sem dependências novas no projeto. Script e screenshots fora do repo.
 Integração real e revisão final continuam na S9-T06.
+
+# Atualização Sprint 10 — tentativas e avaliação manual
+
+Esta atualização substitui as indicações históricas de resolução FUTURO acima.
+`/tentativas` lista rascunhos e envios do dono; `/tentativas/:id` lê o snapshot
+histórico e permite editar/salvar enquanto IN_PROGRESS. O detalhe recomendado
+oferece início/retomada por ação explícita. Login preserva retorno à tentativa
+para conta com onboarding concluído; sessão permanece em memória.
+
+Envio confirmado salva dirty antes de submit. Falha ao salvar impede envio;
+resultado incerto/409 consulta o estado, preservando texto local divergente para
+cópia. SUBMITTED é somente leitura e consulta avaliação manual, com atualização
+explícita, feedback e resultados por skill. 404 revalida ownership antes de indicar
+espera; falhas de conexão apresentam erro. Sem polling ou cálculo de score no UI.
+
+React Router configurado com createBrowserRouter/RouterProvider para useBlocker;
+avisos para links/histórico, logout e beforeunload. Nenhuma dependência nova.
+Rascunho não salvo pode ser perdido em expiração/encerramento; salvamentos em
+abas distintas continuam sujeitos ao último PATCH aceito. Limites informados.
+Contrato e evidências por tarefa em ATTEMPT_EXPERIENCE_CONTRACT.md.
+
+Jornada real de 02/10/2026 usou banco PostgreSQL descartável: recomendação, início,
+salvamento Unicode, retomada após login, snapshot após desativação do catálogo,
+envio, espera, revisão ADMIN pela API, feedback e progresso no painel passaram.
+Score inicial 500 evoluiu para 504 com MET, dificuldade 100, peso 100 e tentativa 1,
+conforme manual-skill-v1. Isolamento de outra conta e mobile verificados.
+API temporária encerrada e banco removido; dados locais preservados.

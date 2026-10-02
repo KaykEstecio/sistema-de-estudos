@@ -20,3 +20,11 @@ export async function getAttempt(client: AxiosInstance, id: number, signal: Abor
 export async function startAttempt(client: AxiosInstance, id: number, signal: AbortSignal) {
   return (await client.post<Attempt>(`/challenges/${id}/attempts`, undefined, { signal })).data
 }
+
+export async function saveAttempt(client: AxiosInstance, id: number, answer: string, signal: AbortSignal) {
+  return (await client.patch<Attempt>(`/attempts/${id}`, { draft_answer: answer }, { signal })).data
+}
+
+export async function submitAttempt(client: AxiosInstance, id: number, signal: AbortSignal) {
+  return (await client.post<Attempt>(`/attempts/${id}/submit`, undefined, { signal })).data
+}

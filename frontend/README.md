@@ -1,63 +1,50 @@
 # CodeTrack — Frontend
 
-Diretório do frontend React com TypeScript, Vite, Tailwind CSS,
-React Router e Axios.
-
-Estado atual: React + TypeScript + Vite com comunicação básica via Axios
-ao endpoint `/health`, implementada na S0-T12.
+React, TypeScript, Vite, Tailwind CSS, React Router e Axios. A interface permite
+cadastro/login, onboarding, diagnóstico, painel por habilidade, recomendação,
+início/retomada de tentativas, salvamento, envio e consulta de revisão manual.
+Conteúdo precisa estar cadastrado; não há seed automático nem painel ADMIN.
 
 ## Execução local
 
-Requisito: Node.js 22.12+; ambiente validado com Node 24.14.1 e npm 11.11.0.
-Na raiz do repositório:
+Node.js 22.12+; ambiente validado com Node 24.14.1. Na raiz do repositório:
 
 ```powershell
-cd frontend
-npm ci
-npm run dev
+npm --prefix frontend ci
+npm --prefix frontend run dev
 ```
 
 Abra o endereço mostrado pelo Vite, normalmente <http://127.0.0.1:5173>.
-Use Ctrl+C para encerrar. Os comandos npm também funcionam no Linux/macOS.
+Use Ctrl+C para encerrar. API na porta 8000 e PostgreSQL precisam estar
+preparados conforme [iniciar os serviços](../README.md#iniciar-os-serviços).
+O proxy local encaminha `/health` e `/api/v1` à API; não acompanha `dist/`.
+Produção será definida na Sprint de deploy.
+
+O token Bearer fica em memória; recarregar exige novo login. Logout ou sessão
+expirada limpa os dados da conta. Salve respostas antes de sair; rascunhos
+não salvos podem ser perdidos. Envio exige confirmação e torna a resposta
+somente leitura, aguardando revisão manual por ADMIN.
 
 ## Validação e build
 
 ```powershell
-npm run typecheck
-npm run build
-npm run preview
+npm --prefix frontend run build
+npm --prefix frontend run typecheck:e2e
+npm --prefix frontend run preview
 ```
 
-O build executa a checagem TypeScript estrita e gera `dist/`.
-`preview` serve esse build localmente; não é um servidor de produção.
-As versões diretas estão fixadas no package.json e as transitivas no package-lock.json.
-`node_modules/` e `dist/` são ignorados pelo Git.
+O build verifica os tipos do produto e gera `dist/`. `preview` serve o build
+localmente, sem o proxy da API; não é servidor de produção. Instale dependências
+com `npm ci` usando package-lock.json. `node_modules/` e `dist/` são ignorados.
 
-Validação S0-T11: build e TypeScript passaram; página inspecionada no Chrome
-em viewport desktop, com título e textos renderizados. Mobile não foi validado.
-Tailwind CSS e React Router fazem parte da stack planejada e serão adicionados
-conforme seu uso nas próximas tarefas; ainda não há telas de negócio.
+## QA de navegador e CI
 
-## Comunicação com o backend
+Instalação de Chromium, testes controlados e jornada real descartável estão em
+[e2e/README.md](e2e/README.md). QA usa portas 4173/8100 próprias. Casos controlados
+usam HTTP simulado; jornada real usa PostgreSQL e API preparados pelo harness.
 
-Inicie o backend em um terminal separado, a partir da raiz do repositório:
-
-```powershell
-& backend/.venv/Scripts/python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
-```
-
-Depois execute o frontend com `npm run dev` em `frontend/`.
-O Vite encaminha `/health` para `http://127.0.0.1:8000/health` via proxy local.
-O navegador usa a mesma origem do frontend, sem necessidade de liberar CORS
-no backend nesta etapa. O proxy não faz parte dos arquivos estáticos de `dist/`;
-o roteamento de produção será definido na Sprint de deploy.
-
-`src/services/health.ts` usa Axios com timeout de cinco segundos e valida
-que a resposta contém `status: "ok"`. A página mostra carregamento, sucesso
-ou erro e permite verificar novamente; requisições são canceladas ao desmontar.
-O estado confirma a resposta da API, não a disponibilidade do banco.
-
-Validação S0-T12: build e TypeScript passaram; no Chrome, sucesso com backend
-ativo, erro após desligá-lo e recuperação pelo botão após reiniciá-lo.
-
-Consulte [a Sprint atual](../docs/CURRENT_SPRINT.md) antes de implementar.
+O [workflow Quality](../.github/workflows/quality.yml) instala as dependências,
+executa backend completo, build, tipos de QA e todos os projetos de navegador
+com PostgreSQL 17 descartável. Instruções e limites em
+[qualidade](../docs/QUALITY_CONTRACT.md). Consulte a
+[Sprint atual](../docs/CURRENT_SPRINT.md) antes de implementar.

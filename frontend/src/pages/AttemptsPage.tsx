@@ -4,6 +4,8 @@ import { Link, useParams } from 'react-router'
 import { useAuth } from '../auth'
 import { getAttempt, getAttempts } from '../services/attempts'
 import type { Attempt, AttemptPage } from '../services/attempts'
+import AttemptAnswer from './AttemptAnswer'
+import AttemptEvaluation from './AttemptEvaluation'
 
 const date = (value: string) => new Date(value).toLocaleString('pt-BR')
 const status = (value: string) => value === 'IN_PROGRESS' ? 'Em andamento' : 'Enviada'
@@ -74,7 +76,8 @@ function AttemptDetail({ id }: { id: number }) {
     })
     return () => controller.abort()
   }, [client, id, reload])
-  useEffect(() => { if (attempt) heading.current?.focus() }, [attempt])
+  const attemptStatus = attempt?.status
+  useEffect(() => { if (attemptStatus) heading.current?.focus() }, [attemptStatus])
   return <main className="dashboard-main attempt-detail">
     <Link to="/tentativas">Voltar às tentativas</Link>
     {!attempt && !error && <p role="status">Carregando tentativa…</p>}
@@ -86,10 +89,9 @@ function AttemptDetail({ id }: { id: number }) {
       <h2>Enunciado</h2><p className="challenge-description">{attempt.challenge_snapshot.description}</p>
       {attempt.challenge_snapshot.starter_code && <><h2>Código inicial</h2><pre><code>{attempt.challenge_snapshot.starter_code}</code></pre></>}
       <h2>Habilidades do desafio</h2><ul>{attempt.challenge_snapshot.skills.map(skill => <li key={skill.skill_id}>Skill #{skill.skill_id} · peso {skill.weight}%</li>)}</ul>
-      <h2>{attempt.status === 'SUBMITTED' ? 'Resposta enviada' : 'Rascunho salvo'}</h2>
-      {attempt.draft_answer ? <pre>{attempt.draft_answer}</pre> : <p>Nenhuma resposta salva ainda.</p>}
-      {attempt.status === 'IN_PROGRESS' && <p className="notice">A edição e o envio pela interface estarão disponíveis na próxima etapa.</p>}
+      <AttemptAnswer initial={attempt} onUpdate={setAttempt} />
       <p className="dashboard-note">Iniciada em {date(attempt.started_at)}{attempt.submitted_at && ` · Enviada em ${date(attempt.submitted_at)}`}</p>
+      {attempt.status === 'SUBMITTED' && <AttemptEvaluation key={attempt.id} attemptId={attempt.id} />}
     </>}
   </main>
 }
