@@ -36,8 +36,21 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
     } catch (err) { if (active.current) setError(errorMessage(err)) }
     finally { pending.current = false; if (active.current) setBusy(false) }
   }
-  return <main className="auth-main">
-    <h1>{register ? 'Crie sua conta' : 'Entre no CodeTrack'}</h1>
+  return <main className="auth-layout">
+    <section className="auth-story" aria-labelledby="learning-title">
+      <p className="eyebrow">Aprender. Praticar. Evoluir.</p>
+      <h2 id="learning-title">Seu próximo passo<br />começa com a prática.</h2>
+      <p className="auth-story-intro">Um lugar para entender seu ponto de partida, resolver desafios e acompanhar cada habilidade.</p>
+      <ol className="learning-steps">
+        <li><span aria-hidden="true">01</span><div><h3>Encontre seu ponto de partida</h3><p>Escolha seus interesses e faça o diagnóstico.</p></div></li>
+        <li><span aria-hidden="true">02</span><div><h3>Transforme conhecimento em prática</h3><p>Resolva desafios e retome suas respostas.</p></div></li>
+        <li><span aria-hidden="true">03</span><div><h3>Aprenda com o feedback</h3><p>Veja a revisão e seu progresso por habilidade.</p></div></li>
+      </ol>
+      <p className="auth-story-footer">Seu aprendizado tem mais de uma dimensão.</p>
+    </section>
+    <section className="auth-main auth-panel" aria-labelledby="auth-title">
+    <p className="eyebrow">{register ? 'Seu primeiro passo' : 'Bom ter você por aqui'}</p>
+    <h1 id="auth-title">{register ? 'Crie sua conta' : 'Entre no CodeTrack'}</h1>
     <p className="subtitle">{register ? 'Comece seu aprendizado em programação.' : 'Continue seu aprendizado em programação.'}</p>
     <form onSubmit={submit} className="auth-form">
       {!register && location.state?.registered && <p className="notice" role="status">Conta criada. Entre com seu e-mail e senha.</p>}
@@ -53,5 +66,6 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
       </fieldset>
     </form>
     <p className="alternate">{register ? 'Já tem conta? ' : 'Ainda não tem conta? '}<Link to={register ? '/entrar' : '/cadastro'}>{register ? 'Entrar' : 'Criar conta'}</Link></p>
+    </section>
   </main>
 }

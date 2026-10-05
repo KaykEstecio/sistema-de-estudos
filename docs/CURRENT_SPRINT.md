@@ -2,7 +2,86 @@
 
 ## Sprint atual
 
-SPRINT 11 — TESTS & QUALITY
+SPRINT 12 — DEPLOY INICIAL (PLANEJAMENTO)
+
+Planejamento iniciado em 05/10/2026. S12-T01 concluída em
+[DEPLOY_PLAN.md](DEPLOY_PLAN.md); nenhuma publicação/configuração de produção.
+Próxima tarefa: S12-T02 — definir contrato de configuração, roteamento,
+migrations, validação e recuperação. Implementação e criação de recursos
+dependem dessas definições; não implementar funcionalidades novas de produto.
+
+## Refinamento visual autorizado em 05/10/2026
+
+Preferência visual atual: manter a inspiração no Duolingo com foco na cor azul.
+Azul aplicado à marca, botões, links, seleção, cartões e medidores; tema escuro
+usa azul luminoso sobre superfícies azul profundo. Violeta permanece secundário.
+Validação da paleta azul: build/tipos e inspeção Playwright nos dois temas em
+320/390/768/1440 px aprovados, sem overflow ou erros de console; cleanup
+confirmado. Contraste dos pares principais de ação/link verificados >= 4,8:1.
+
+Direção adicional solicitada: Duolingo como inspiração, a partir de link do
+Mobbin. A página do Mobbin não ficou acessível; consultado o material oficial
+[Core tabs redesign](https://blog.duolingo.com/core-tabs-redesign/).
+Aplicados tipografia Nunito local com licença OFL, botões com relevo, cantos
+arredondados, ícones decorativos na navegação/indicadores, etapas conectadas no
+cadastro/login e paletas verde/azul/violeta com escuro azul profundo.
+Preservados os contratos, revisão manual e indicadores reais; sem novas
+funcionalidades de gamificação ou dependências npm.
+Validação desta direção: build/tipos aprovados, 15 testes Playwright sem
+falhas/skips; inspeção adicional com banco descartável em 320/390/768/1440 px
+nos dois temas, sem overflow/overlay/erros de console. Capturas atualizadas em
+TEMP/codetrack-refinement-qa; cleanup confirmado. Sem commit/deploy.
+
+Novo pedido: evoluir o design e incluir tema escuro. Autorizados temas claro,
+escuro e automático, preferência local persistida e adaptação ao sistema;
+refinamento do painel/controles mantendo contratos e regras existentes.
+Validar persistência, teclado, contraste e jornada nos dois temas.
+
+Implementado: seletor Claro/Escuro/Automático, inicialização antes do React,
+preferência codetrack.theme no navegador, acompanhamento do sistema e sync
+entre abas, com fallback para storage bloqueado. Paletas por variáveis CSS
+abrangem superfícies, controles, mensagens e editor; color-scheme acompanha a
+seleção. Painel em duas colunas no desktop e medidores do score real por skill.
+Testes versionados de tema: dois cenários em cada viewport; jornada real agora
+em escuro e casos controlados em claro. Build/tipos e 15 testes passaram após
+ajustes finais de cabeçalho/contraste, sem skips/falhas, cleanup confirmado.
+Contrastes calculados dos pares principais de texto >= 4,5:1; bordas de campos
+reforçadas. Não equivale a auditoria integral de acessibilidade.
+Inspeção visual final com banco descartável em ambos os temas: cadastro, painel,
+tentativas, resolução, perfil e seleção do diagnóstico em 320/390/768/1440 px,
+sem overflow, overlay ou erros de console; execução temporária aprovada e cleanup
+confirmado. Capturas TEMP/codetrack-refinement-qa/dark-*.png e light-*.png,
+com transições finalizadas para comparar as cores estáveis. Demais limites de
+navegador/leitor de tela permanecem. Nenhum commit/deploy realizado.
+
+Pedido explícito do usuário: refinamento visual da interface antes de continuar
+o deploy. Recorte: navegação ativa, tipografia, cores, espaçamento, formulários,
+painel e composição da resolução de desafios em desktop/mobile. Preservar rotas,
+contratos, dados, autenticação e regras de aprendizagem. Sem dependências novas.
+Validar build/tipos, jornada Playwright e capturas das telas afetadas. O contrato
+de deploy S12-T02 será retomado depois deste refinamento.
+
+Concluído: navegação por NavLink com indicação de página atual e destino do
+atalho de conteúdo focável; login/cadastro em composição de duas colunas no
+desktop, com formulário primeiro no mobile; paleta verde e neutros, tipografia
+local, espaçamento e estados de controles consistentes. Painel agrupa perfil e
+indicadores; resolução dispõe contexto e resposta lado a lado no desktop.
+Formulários, seleção de habilidades, tentativas e avaliação compartilham o estilo.
+Não foram adicionadas dependências, dados demonstrativos no produto ou mudanças
+de API/regras. Identificadores históricos de skills continuam vindo do contrato.
+
+Validação em 05/10: build/TypeScript aprovados; 11 testes do harness passaram,
+sem skips/falhas, cleanup confirmado. Inspeção adicional temporária com API e
+banco descartáveis aprovou cadastro, painel, tentativas, resolução, perfil e
+seleção do diagnóstico em 320/390/768/1440 px, navegação ativa e ausência de
+overflow/overlay/erros de console. Login também inspecionado em desktop/mobile.
+Capturas em TEMP/codetrack-refinement-qa e TEMP/codetrack-login-*.png; scripts
+temporários não são testes de regressão versionados. Chromium Windows via
+Playwright (Browser plugin ausente). Sem teste de leitor de tela ou outros
+motores; não declara auditoria WCAG. A suíte backend não foi repetida nesta
+alteração de apresentação. Alterações ainda sem commit.
+
+## Histórico da Sprint anterior
 
 Concluída em 02/10/2026. Fechamento em [SPRINT_11.md](SPRINT_11.md), com
 validação local aprovada e CI remota explicitamente não executada.
@@ -75,6 +154,6 @@ Regras de negócio nos services; repositories não fazem commit.
 
 ## Próxima tarefa
 
-Planejar Sprint 12 — deploy inicial, definindo recorte e pré-requisitos antes
-de alterar configuração ou publicar. Sprint 11 encerrada; Sprint 12 ainda não
-ativa. CI remota precisa ser conferida após publicação, sem presumir aprovação.
+S12-T02 — contrato de deploy conforme DEPLOY_PLAN.md. Sprint 11 encerrada;
+Sprint 12 em planejamento. CI remota precisa ser conferida após publicação,
+sem presumir aprovação. Nenhum recurso externo criado nesta etapa.

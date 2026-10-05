@@ -31,6 +31,7 @@ export default function AttemptsPage() {
     return () => controller.abort()
   }, [client, offset, reload])
   return <main className="dashboard-main">
+    <p className="eyebrow">Sua prática</p>
     <h1 ref={title} tabIndex={-1}>Minhas tentativas</h1>
     <p className="dashboard-note">Retome seus rascunhos ou consulte respostas enviadas.</p>
     {!page && !error && <p role="status">Carregando tentativas…</p>}
@@ -86,10 +87,14 @@ function AttemptDetail({ id }: { id: number }) {
       <p className="eyebrow">{status(attempt.status)} · Tentativa {attempt.attempt_number}</p>
       <h1 ref={heading} tabIndex={-1}>{attempt.challenge_snapshot.title}</h1>
       <p className="dashboard-note">Dificuldade {attempt.challenge_snapshot.difficulty_score}/1.000 · cerca de {attempt.challenge_snapshot.estimated_minutes} min</p>
+      <div className="attempt-workspace">
+      <section className="attempt-context" aria-label="Contexto do desafio">
       <h2>Enunciado</h2><p className="challenge-description">{attempt.challenge_snapshot.description}</p>
       {attempt.challenge_snapshot.starter_code && <><h2>Código inicial</h2><pre><code>{attempt.challenge_snapshot.starter_code}</code></pre></>}
       <h2>Habilidades do desafio</h2><ul>{attempt.challenge_snapshot.skills.map(skill => <li key={skill.skill_id}>Skill #{skill.skill_id} · peso {skill.weight}%</li>)}</ul>
+      </section>
       <AttemptAnswer initial={attempt} onUpdate={setAttempt} />
+      </div>
       <p className="dashboard-note">Iniciada em {date(attempt.started_at)}{attempt.submitted_at && ` · Enviada em ${date(attempt.submitted_at)}`}</p>
       {attempt.status === 'SUBMITTED' && <AttemptEvaluation key={attempt.id} attemptId={attempt.id} />}
     </>}

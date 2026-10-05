@@ -13,7 +13,11 @@ npm --prefix frontend run test:e2e:controlled
 
 O projeto controlado inicia Vite em 127.0.0.1:4173 e usa HTTP simulado, sem exigir
 PostgreSQL/API. Porta ocupada não é reutilizada. Executa cinco cenários em
-desktop 1440x1000 e mobile 390x844. Inclui typecheck específico de QA.
+desktop 1440x1000 e mobile 390x844, mais dois cenários de tema por viewport.
+Inclui typecheck específico de QA. Casos controlados de tentativas usam tema claro;
+a jornada real usa tema escuro. Os testes de tema verificam alternância pelo
+sistema/teclado, persistência após reload, sincronização entre abas e storage
+bloqueado. Total atual do harness: 15 testes, sem usar contagem como critério fixo.
 No Linux/CI, dependências nativas do browser podem exigir
 `npx playwright install --with-deps chromium`, conforme a documentação oficial.
 

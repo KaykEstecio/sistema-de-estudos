@@ -1,0 +1,47 @@
+import { test, expect, noOverflow } from './helpers'
+
+test('tema: sistema, teclado, persistência e sincronização entre abas', async ({ page, context }, testInfo) => {
+  await page.emulateMedia({ colorScheme: 'light' })
+  await page.goto('/entrar')
+  const root = page.locator('html')
+  const theme = page.getByLabel('Tema da interface')
+  await expect(root).toHaveAttribute('data-theme', 'light')
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await expect(root).toHaveAttribute('data-theme', 'dark')
+  await theme.selectOption('light')
+  await expect(root).toHaveAttribute('data-theme', 'light')
+  await theme.focus(); await theme.press('End'); await theme.press('Enter')
+  await expect(theme).toHaveValue('dark')
+  await page.emulateMedia({ colorScheme: 'light' })
+  await expect(root).toHaveAttribute('data-theme', 'dark')
+  await page.reload()
+  await expect(theme).toHaveValue('dark')
+  await expect(root).toHaveAttribute('data-theme', 'dark')
+  await noOverflow(page)
+  await page.screenshot({ path: testInfo.outputPath('dark-login.png'), fullPage: true })
+  const other = await context.newPage()
+  await other.goto('/cadastro')
+  await other.getByLabel('Tema da interface').selectOption('light')
+  await expect(theme).toHaveValue('light')
+  await expect(root).toHaveAttribute('data-theme', 'light')
+  await other.close()
+  await theme.selectOption('system')
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await expect(root).toHaveAttribute('data-theme', 'dark')
+})
+
+test('tema funciona com armazenamento bloqueado', async ({ page }) => {
+  await page.addInitScript(() => {
+    Storage.prototype.getItem = () => { throw new DOMException('Blocked', 'SecurityError') }
+    Storage.prototype.setItem = () => { throw new DOMException('Blocked', 'SecurityError') }
+  })
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.goto('/entrar')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.getByLabel('Tema da interface').selectOption('light')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Criar conta' }).click()
+  await expect(page.getByRole('heading', { name: 'Crie sua conta' })).toBeVisible()
+  await expect(page.getByLabel('Tema da interface')).toHaveValue('light')
+  await noOverflow(page)
+})

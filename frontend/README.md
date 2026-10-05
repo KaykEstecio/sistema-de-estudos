@@ -5,6 +5,26 @@ cadastro/login, onboarding, diagnóstico, painel por habilidade, recomendação,
 início/retomada de tentativas, salvamento, envio e consulta de revisão manual.
 Conteúdo precisa estar cadastrado; não há seed automático nem painel ADMIN.
 
+Refinamento visual de 05/10/2026: navegação com página ativa, login/cadastro
+com apresentação do percurso de aprendizagem, formulários consistentes e
+enunciado/resposta lado a lado no desktop. A composição se adapta ao mobile,
+com foco visível e preferência de movimento reduzido respeitada.
+
+Direção visual inspirada no Duolingo: formas arredondadas, botões com relevo,
+azul como cor principal nas ações, seleção e cartões, com apoio violeta. A fonte variável Nunito
+é servida localmente em `public/fonts`, com sua licença SIL OFL incluída.
+Origem: [Google Fonts — Nunito](https://github.com/google/fonts/tree/main/ofl/nunito).
+Não há dependência de CDN de fontes. A inspiração é visual; os indicadores
+continuam exibindo somente os dados reais disponibilizados pela API.
+
+O seletor **Tema**, no cabeçalho, oferece Claro, Escuro e Automático (padrão,
+acompanha o sistema). A escolha é salva apenas neste navegador, na chave
+`codetrack.theme`; não contém identidade ou credenciais. Outras abas sincronizam
+a preferência. Se o armazenamento estiver bloqueado, a seleção continua
+funcionando durante a sessão. O tema é aplicado antes da montagem do React.
+Painel com recomendações/progresso lado a lado no desktop; barras exibem o score
+real na escala 0–1.000, sem representar percentual de domínio.
+
 ## Execução local
 
 Node.js 22.12+; ambiente validado com Node 24.14.1. Na raiz do repositório:

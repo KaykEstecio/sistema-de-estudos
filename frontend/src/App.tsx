@@ -1,6 +1,8 @@
-import { createBrowserRouter, createRoutesFromElements, Link, Navigate, Outlet, Route, RouterProvider, useLocation } from 'react-router'
+import { createBrowserRouter, createRoutesFromElements, Link, NavLink, Navigate, Outlet, Route, RouterProvider, useLocation } from 'react-router'
 import { ExitGuardProvider, useLogoutGuard } from './exitGuard'
 import { AuthProvider, useAuth } from './auth'
+import ThemeSelect from './ThemeSelect'
+import LearningIcon from './LearningIcon'
 import AuthPage from './pages/AuthPage'
 import OnboardingPage from './pages/OnboardingPage'
 import DiagnosticPage from './pages/DiagnosticPage'
@@ -15,10 +17,11 @@ function Shell() {
   function leave() {
     if (!guarded || window.confirm('Sair da conta? Alterações não salvas serão perdidas. Uma operação em andamento pode ter sido concluída no servidor.')) logout()
   }
-  return <><a className="skip" href="#content">Pular para o conteúdo</a><header>
-    <Link to="/" className="brand" aria-label="CodeTrack, início">Code<span>Track</span></Link>
-    <nav aria-label="Principal">{user ? <><Link to="/dashboard">Meu painel</Link><Link to="/tentativas">Tentativas</Link><Link to="/onboarding">Meu perfil</Link><Link to="/diagnostico">Diagnóstico</Link><button onClick={leave} className="text-button">Sair</button></> : <Link to={location.pathname === '/cadastro' ? '/entrar' : '/cadastro'}>{location.pathname === '/cadastro' ? 'Entrar' : 'Criar conta'}</Link>}</nav>
-  </header><div id="content"><Outlet /></div></>
+  return <><a className="skip" href="#content">Pular para o conteúdo</a><header className="site-header">
+    <Link to="/" className="brand" aria-label="CodeTrack, início"><span className="brand-mark" aria-hidden="true">/c</span>Code<span>Track</span></Link>
+    <nav aria-label="Principal">{user ? <><NavLink to="/dashboard"><LearningIcon name="home" />Meu painel</NavLink><NavLink to="/tentativas"><LearningIcon name="code" />Tentativas</NavLink><NavLink to="/onboarding"><LearningIcon name="profile" />Meu perfil</NavLink><NavLink to="/diagnostico"><LearningIcon name="target" />Diagnóstico</NavLink><button onClick={leave} className="text-button logout-button">Sair</button></> : <Link className="header-action" to={location.pathname === '/cadastro' ? '/entrar' : '/cadastro'}>{location.pathname === '/cadastro' ? 'Entrar' : 'Criar conta'}</Link>}</nav>
+    <ThemeSelect />
+  </header><div id="content" tabIndex={-1}><Outlet /></div></>
 }
 function Protected() {
   const { user } = useAuth()

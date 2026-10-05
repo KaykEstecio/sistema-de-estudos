@@ -5,6 +5,7 @@ import { useAuth } from '../auth'
 import { getDashboard } from '../services/dashboard'
 import type { Dashboard } from '../services/dashboard'
 import DashboardRecommendations from './DashboardRecommendations'
+import LearningIcon from '../LearningIcon'
 
 const dates = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })
 const confidence = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 6 })
@@ -52,10 +53,11 @@ export default function DashboardPage() {
           : <p className="notice">Você ainda não escolheu seus interesses. <Link to="/onboarding">Configurar perfil</Link></p>}
       </section>
       <dl className="dashboard-stats" aria-label="Resumo de atividade">
-        <div><dt>Habilidades acompanhadas</dt><dd>{data.summary.tracked_skills}</dd><p>Com evidências de prática avaliadas.</p></div>
-        <div><dt>Tentativas enviadas</dt><dd>{data.summary.submitted_attempts}</dd><p>Inclui novas tentativas do mesmo desafio.</p></div>
-        <div><dt>Aguardando revisão</dt><dd>{data.summary.pending_reviews}</dd><p>Envios que ainda não receberam avaliação.</p></div>
+        <div><dt><LearningIcon name="growth" />Habilidades acompanhadas</dt><dd>{data.summary.tracked_skills}</dd><p>Com evidências de prática avaliadas.</p></div>
+        <div><dt><LearningIcon name="code" />Tentativas enviadas</dt><dd>{data.summary.submitted_attempts}</dd><p>Inclui novas tentativas do mesmo desafio.</p></div>
+        <div><dt><LearningIcon name="review" />Aguardando revisão</dt><dd>{data.summary.pending_reviews}</dd><p>Envios que ainda não receberam avaliação.</p></div>
       </dl>
+      <div className="dashboard-workspace">
       <DashboardRecommendations interests={data.profile.interests} refreshContext={refreshContext} />
       <section className="dashboard-progress" aria-labelledby="progress-title">
         <div className="section-heading"><h2 id="progress-title">Suas habilidades</h2>
@@ -69,6 +71,7 @@ export default function DashboardPage() {
           {data.progress.items.length === 0 ? <p className="notice">Não há habilidades nesta página. <button className="text-button" onClick={() => setOffset(0)}>Voltar à primeira página</button></p>
             : <ul className="skill-progress-list" aria-describedby="confidence-note">{data.progress.items.map(skill => <li key={skill.skill_id}>
               <div className="skill-heading"><h3>{skill.name}</h3>{!skill.is_active && <span className="inactive-label">Desativada no catálogo</span>}</div>
+              <meter className="skill-meter" min={0} max={1000} value={skill.score} aria-label={`Score de ${skill.name}`} />
               <dl className="skill-values"><div><dt>Score</dt><dd>{skill.score} <span>/ 1.000</span></dd></div>
                 <div><dt>Confiança</dt><dd>{confidence.format(Number(skill.confidence))}</dd></div>
                 <div><dt>Evidências avaliáveis</dt><dd>{skill.attempts}</dd></div>
@@ -82,6 +85,7 @@ export default function DashboardPage() {
           </nav>
         </>}
       </section>
+      </div>
     </>}
   </main>
 }
