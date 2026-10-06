@@ -132,6 +132,7 @@ function Suggestions({ client, skill, refreshContext }: { client: AxiosInstance;
       {!detail && !detailError && <p role="status">Carregando desafio…</p>}
       {detailError && <div className="error" role="alert">{detailError} <button className="text-button" onClick={() => setDetailReload(value => value + 1)}>Tentar abrir desafio novamente</button></div>}
       {detail && <><h3 ref={detailTitle} tabIndex={-1}>{detail.title}</h3>
+        <p><Link className="dashboard-action" to={`/estudar?skill=${skill.id}`}>Estudar esta habilidade antes de praticar</Link></p>
         <StartAttempt key={detail.id} client={client} id={detail.id} />
         <p className="challenge-description">{detail.description}</p>
         {detail.starter_code && <><h4>Código inicial</h4><pre><code>{detail.starter_code}</code></pre></>}

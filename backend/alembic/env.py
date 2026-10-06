@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import Settings
 from app.database.base import Base
+from app.modules.study.models import StudyContent, StudyCompletion
 from app.modules.users.models import User  # Registra o model nos metadados.
 from app.modules.categories.models import Category
 from app.modules.skills.models import Skill

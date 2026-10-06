@@ -19,9 +19,12 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
   const abort = useRef<AbortController | null>(null)
   useEffect(() => { active.current = true; return () => { active.current = false; abort.current?.abort() } }, [])
   const from = location.state?.from
-  const destination = !auth.user?.onboarding_completed ? '/onboarding'
-    : typeof from === 'string' && /^\/(dashboard|onboarding|(?:diagnostico|tentativas)(?:\/[1-9]\d*)?)$/.test(from)
-      ? from : '/dashboard'
+  const adminDestination = auth.user?.role === 'ADMIN'
+    ? typeof from === 'string' && /^\/admin\/revisoes(?:\/[1-9]\d*)?$/.test(from) ? from : '/admin/revisoes'
+    : null
+  const destination = adminDestination ?? (!auth.user?.onboarding_completed ? '/onboarding'
+    : typeof from === 'string' && /^\/(dashboard|onboarding|estudar|(?:diagnostico|tentativas|estudar)(?:\/[1-9]\d*)?)$/.test(from)
+      ? from : '/dashboard')
   if (auth.user) return <Navigate to={destination} replace />
   async function submit(event: FormEvent) {
     event.preventDefault()

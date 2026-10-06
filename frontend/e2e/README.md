@@ -17,7 +17,9 @@ desktop 1440x1000 e mobile 390x844, mais dois cenários de tema por viewport.
 Inclui typecheck específico de QA. Casos controlados de tentativas usam tema claro;
 a jornada real usa tema escuro. Os testes de tema verificam alternância pelo
 sistema/teclado, persistência após reload, sincronização entre abas e storage
-bloqueado. Total atual do harness: 15 testes, sem usar contagem como critério fixo.
+bloqueado. Total atual do harness: 16 testes, sem usar contagem como critério fixo.
+O segundo caso real cobre publicação de conteúdo pelo ADMIN e leitura pessoal,
+persistência após login e isolamento entre contas, com capturas nos dois temas.
 No Linux/CI, dependências nativas do browser podem exigir
 `npx playwright install --with-deps chromium`, conforme a documentação oficial.
 
@@ -47,9 +49,11 @@ O harness resume resultado sem retransmitir logs HTTP autenticados. Não há ret
 automático de testes; falhas precisam ser analisadas.
 
 `real.spec.ts` verifica início/salvamento, retomada após login, snapshot após
-alteração/desativação, envio, espera, revisão por ADMIN via API, progresso 504 e
+alteração/desativação, envio, espera, revisão pelo painel ADMIN, progresso 504 e
 isolamento. IDs vêm da preparação/API, sem assumir PK fixa. O mesmo ciclo inclui
-desktop/mobile. Mocks verificam cenários de falha, não provam integração real.
+desktop/mobile. A revisão testa confirmação de saída e consulta após o servidor
+salvar e a resposta ser substituída por 503, sem segundo POST. Mocks verificam
+cenários de falha, não provam integração real.
 
 Referências: [projetos](https://playwright.dev/docs/test-projects),
 [servidor de testes](https://playwright.dev/docs/test-webserver) e

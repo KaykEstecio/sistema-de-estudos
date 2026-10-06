@@ -3,11 +3,11 @@
 from sqlalchemy.orm import Session
 from app.modules.skills.service import SkillService
 from app.modules.users.auth_service import AuthService, InvalidCredentials, PermissionDenied
-from app.modules.attempts.schemas import AttemptRead, ChallengeSnapshot
+from app.modules.attempts.schemas import AttemptRead, AttemptSummary, ChallengeSnapshot
 from app.modules.attempts.models import ChallengeAttempt
 from app.modules.evaluation.models import AttemptEvaluation
 from app.modules.evaluation.repository import EvaluationRepository
-from app.modules.evaluation.schemas import EvaluationCreate, EvaluationRead, EvaluationSkillInput, ReviewRead
+from app.modules.evaluation.schemas import EvaluationCreate, EvaluationRead, EvaluationSkillInput, ReviewRead, ReviewPage
 
 
 class EvaluationNotFound(Exception):
@@ -26,6 +26,15 @@ class EvaluationService:
     def __init__(self, session: Session) -> None:
         self.session = session
         self.repository = EvaluationRepository(session)
+
+    def list_pending(self, reviewer_id: int, limit: int, offset: int) -> ReviewPage:
+        reviewer = self.repository.get_user(reviewer_id)
+        if reviewer is None:
+            raise InvalidCredentials()
+        AuthService.require_admin(reviewer)
+        rows, total = self.repository.list_pending(reviewer_id, limit, offset)
+        return ReviewPage(items=[AttemptSummary.model_validate(row) for row in rows],
+                          total=total, limit=limit, offset=offset)
 
     def _review_attempt(self, reviewer_id: int, attempt_id: int, *, lock: bool = False) -> ChallengeAttempt:
         reviewer = self.repository.get_user(reviewer_id)

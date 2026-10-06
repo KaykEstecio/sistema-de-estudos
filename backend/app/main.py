@@ -1,6 +1,9 @@
 """Ponto de entrada ASGI da aplicação CodeTrack."""
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from app.modules.study.router import router as study_router
+from app.modules.study.service import StudyNotFound
 from app.modules.assessments.router import router as assessments_router
 from app.modules.assessments.service import AssessmentNotFound, AssessmentConflict
 from app.core.errors import assessment_error_handler
@@ -34,6 +37,13 @@ from app.modules.evaluation.service import EvaluationNotFound, EvaluationConflic
 from app.core.errors import evaluation_error_handler
 settings = Settings()
 app = FastAPI(title=settings.app_name, debug=settings.debug)
+app.include_router(study_router)
+
+
+@app.exception_handler(StudyNotFound)
+async def study_not_found(request: Request, exc: StudyNotFound) -> JSONResponse:
+    return JSONResponse(status_code=404, content={"detail": "Conteúdo ou habilidade indisponível."}, headers={"Cache-Control": "no-store"})
+
 app.add_exception_handler(RequestValidationError, validation_error_handler)
 for error_type in (CategoryNotFound, CategorySlugConflict, SkillNotFound, SkillSlugConflict):
     app.add_exception_handler(error_type, catalog_error_handler)

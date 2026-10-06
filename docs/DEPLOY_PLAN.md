@@ -1,5 +1,9 @@
 # Sprint 12 — Deploy inicial
 
+ADIADO em 05/10/2026 por decisão do usuário. Prioridade atual: painel local de
+revisão ADMIN, conforme CURRENT_SPRINT.md. Este documento permanece como plano,
+sem execução de publicação ou criação de recursos.
+
 Planejamento iniciado em 05/10/2026, após [Sprint 11](SPRINT_11.md).
 Esta etapa entrega apenas o recorte; não cria serviços, custos ou publicação.
 Preservar Vercel, Render, PostgreSQL e monólito modular.
@@ -48,7 +52,8 @@ não credenciais. Preview não deve escrever no banco de produção.
 
 1. S12-T01 — inventário e recorte neste documento (concluído).
 2. S12-T02 — contrato de configuração, roteamento, migrations, validação e
-   recuperação; registrar decisões sem criar recursos externos.
+   recuperação concluído em [DEPLOY_CONTRACT.md](DEPLOY_CONTRACT.md), sem criar
+   recursos externos. URL pública da API ainda pendente para S12-T03.
 3. S12-T03 — implementar apenas arquivos/configuração necessários, com URL
    pública definida e sem secrets versionados; validar tipos/build e rotas.
 4. S12-T04 — publicar código no GitHub e conferir CI remota do commit exato.

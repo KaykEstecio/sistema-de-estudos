@@ -1,6 +1,7 @@
 """Contratos HTTP de revisão não ampliam o acesso às rotas de tentativas."""
 
 import secrets
+from datetime import datetime, timezone
 import httpx
 import pytest
 from sqlalchemy.orm import Session
@@ -32,7 +33,12 @@ async def test_evaluation_http(migrated_database, monkeypatch):
         ids = [user.id for user in users]
         snapshot = dict(title="Fixture", description="Test", challenge_type="CODE", difficulty="EASY", difficulty_score=100, estimated_minutes=10, starter_code=None, skills=[dict(skill_id=123, weight=100)])
         attempt = ChallengeAttempt(user_id=ids[0], challenge_id=challenge.id, attempt_number=1, draft_answer="private response", challenge_snapshot=snapshot)
-        session.add(attempt); session.commit(); aid = attempt.id
+        session.add(attempt); session.flush(); aid = attempt.id
+        now = datetime.now(timezone.utc)
+        session.add(ChallengeAttempt(user_id=ids[2], challenge_id=challenge.id, attempt_number=1,
+            status="SUBMITTED", started_at=now, submitted_at=now, last_activity_at=now,
+            draft_answer="own admin response", challenge_snapshot=snapshot))
+        session.commit()
     monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://localhost:1/test")
     from app.main import app
     from app.database.connection import get_session
@@ -50,6 +56,8 @@ async def test_evaluation_http(migrated_database, monkeypatch):
     payload = {"feedback": "Useful feedback", "skills": [{"skill_id": 123, "classification": "INSUFFICIENT_EVIDENCE", "justification": "Not observable"}]}
     try:
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            # Drafts and the reviewer's own submitted attempts are excluded.
+            assert (await client.get('/api/v1/reviews/attempts', headers=admin)).json()['items'] == []
             for method, url, headers, expected in [
                 ("GET", review, {}, 401), ("POST", evaluation, {}, 401), ("GET", owned, {}, 401),
                 ("GET", review, owner, 403), ("POST", evaluation, stranger, 403),
@@ -62,6 +70,20 @@ async def test_evaluation_http(migrated_database, monkeypatch):
                 assert response.headers["cache-control"] == "no-store"
                 assert "private response" not in response.text
             assert (await client.post(f"/api/v1/attempts/{aid}/submit", headers=owner)).status_code == 200
+            queue = "/api/v1/reviews/attempts"
+            assert (await client.get(queue)).status_code == 401
+            assert (await client.get(queue, headers=owner)).status_code == 403
+            pending = await client.get(queue, headers=admin)
+            assert pending.status_code == 200 and pending.headers["cache-control"] == "no-store"
+            assert pending.json()["total"] == 1
+            assert pending.json()["items"][0]["id"] == aid
+            assert "draft_answer" not in pending.text and "user_id" not in pending.text
+            assert "private response" not in pending.text
+            assert "own admin response" not in pending.text
+            beyond = (await client.get(queue + "?limit=1&offset=10", headers=admin)).json()
+            assert beyond["total"] == 1 and beyond["items"] == []
+            for query in ("limit=0", "limit=51", "offset=-1", "extra=1"):
+                assert (await client.get(queue + "?" + query, headers=admin)).status_code == 422
             response = await client.get(review, headers=admin)
             assert response.status_code == 200 and response.json()["evaluation"] is None
             assert response.json()["attempt"]["draft_answer"] == "private response"
@@ -77,6 +99,7 @@ async def test_evaluation_http(migrated_database, monkeypatch):
             assert (await client.post(evaluation, headers=admin, json=invalid)).status_code == 422
             created = await client.post(evaluation, headers=admin, json=payload)
             assert created.status_code == 201 and created.headers["cache-control"] == "no-store"
+            assert (await client.get(queue, headers=admin)).json()["total"] == 0
             data = created.json()
             assert set(data) == {"id", "attempt_id", "rubric_version", "feedback", "skills", "created_at"}
             repeated = await client.post(evaluation, headers=admin, json={**payload, "feedback": " Useful feedback "})
@@ -94,6 +117,7 @@ async def test_evaluation_http(migrated_database, monkeypatch):
             assert (await client.get(review, headers=owner)).status_code == 403
             assert (await client.post(evaluation, headers=owner, json=payload)).status_code == 403
             assert (await client.get(review, headers=admin)).status_code == 403
+            assert (await client.get(queue, headers=admin)).status_code == 403
             assert (await client.get(owned, headers=owner)).json() == data
     finally:
         app.dependency_overrides.clear()

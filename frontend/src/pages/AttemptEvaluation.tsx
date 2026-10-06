@@ -62,6 +62,7 @@ export default function AttemptEvaluation({ attemptId }: { attemptId: number }) 
       <ul className="evaluation-skills">{evaluation.skills.map(skill => <li key={skill.skill_id}>
         <h4>Skill #{skill.skill_id} · {labels[skill.classification]}</h4>
         <p className="challenge-description">{skill.justification}</p>
+        <p><Link to={`/estudar?skill=${skill.skill_id}`}>Revisar conteúdos desta habilidade</Link></p>
         {skill.classification === 'INSUFFICIENT_EVIDENCE' && <p className="dashboard-note">Evidência insuficiente não equivale a erro; a resposta não permite concluir sobre esta habilidade.</p>}
       </li>)}</ul>
     </>}

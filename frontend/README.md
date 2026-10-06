@@ -3,7 +3,15 @@
 React, TypeScript, Vite, Tailwind CSS, React Router e Axios. A interface permite
 cadastro/login, onboarding, diagnóstico, painel por habilidade, recomendação,
 início/retomada de tentativas, salvamento, envio e consulta de revisão manual.
-Conteúdo precisa estar cadastrado; não há seed automático nem painel ADMIN.
+Conteúdo precisa estar cadastrado; não há seed automático. O painel ADMIN de
+revisões está em `/admin/revisoes`, com fila de pendências, consulta e avaliação
+manual. Exige conta ADMIN existente. Uso e limites em
+[painel de revisão](../docs/ADMIN_REVIEW_PANEL.md).
+
+A área **Estudar** (`/estudar`) oferece conteúdos por habilidade e marcação
+pessoal de leitura, sem alterar score. ADMIN cadastra pela biblioteca em
+`/admin/conteudos/novo`. Desafios e feedback têm atalhos por skill.
+Detalhes e limites em [área de estudo](../docs/STUDY_AREA.md).
 
 Refinamento visual de 05/10/2026: navegação com página ativa, login/cadastro
 com apresentação do percurso de aprendizagem, formulários consistentes e

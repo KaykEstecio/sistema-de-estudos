@@ -5,6 +5,18 @@ Na primeira execução, faça antes a [Preparação inicial](#preparação-inici
 
 ## Estado de implementação
 
+Sprint 12B entregue localmente: área de estudo por habilidade, publicação manual
+ADMIN, explicação/exemplo/erros comuns e conclusão individual sem alterar score.
+Links em desafios e feedback conectam estudo e prática. Aplicar migration 0009.
+Uso em [STUDY_AREA.md](docs/STUDY_AREA.md). Última validação: 341 testes backend
+completos e 16 de navegador aprovados, além de build e Alembic check.
+
+Painel ADMIN de revisão implementado localmente (Sprint 12A): fila paginada,
+contexto histórico, resposta do aluno e avaliação manual por habilidade em
+`/admin/revisoes`. Login ADMIN abre a fila; cadastro público permanece STUDENT.
+Detalhes em [painel de revisão](docs/ADMIN_REVIEW_PANEL.md).
+Deploy adiado pelo usuário; o planejamento da Sprint 12 fica preservado.
+
 Sprint 11 — testes e qualidade concluída: modos backend fast/complete, harness
 reproduzível de navegador, revisão de sessão/acesso/teclado e workflow Quality.
 Validação local: 340 testes backend e 11 navegador aprovados; CI remota ainda

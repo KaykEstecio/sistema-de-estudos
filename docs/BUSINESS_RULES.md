@@ -672,3 +672,11 @@ Regra de negócio complexa não deve ficar no router.
 ## RN60
 
 Nova funcionalidade deve respeitar a Sprint atual.
+
+## Área de estudo — decisão da Sprint 12B (06/10/2026)
+
+Conteúdo manual pertence a uma skill ativa e só pode ser publicado por ADMIN.
+Leitura é autenticada; a marcação de estudado é privada por usuário e idempotente.
+Concluir leitura não inicializa UserSkill, não altera score, não gera SkillEvidence
+e não representa domínio. Desafios e avaliações ligam materiais por skill sem
+alterar as regras de recomendação. Contrato em [STUDY_AREA.md](STUDY_AREA.md).

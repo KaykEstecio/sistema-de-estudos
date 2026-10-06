@@ -1,6 +1,6 @@
 import { test, expect, login, noOverflow } from './helpers'
 
-test('ciclo real: tentativa, revisão e progresso do dono', async ({ page, request }, testInfo) => {
+test('ciclo real: tentativa, revisão e progresso do dono', async ({ page, request, context }, testInfo) => {
   if (process.env.CODETRACK_QA_DISPOSABLE !== '1' || !process.env.QA_PASSWORD) throw new Error('Execute a jornada real pelo harness Python descartável.')
   const password = process.env.QA_PASSWORD
   const challengeId = Number(process.env.QA_CHALLENGE_ID)
@@ -32,14 +32,51 @@ test('ciclo real: tentativa, revisão e progresso do dono', async ({ page, reque
   await page.getByRole('button', { name: 'Enviar para revisão' }).click()
   await expect(page.getByText('Sua resposta aguarda revisão manual', { exact: false })).toBeVisible()
   await expect(editor).toHaveCount(0)
-  const evaluation = await request.post(`${api}/reviews/attempts/${attemptId}/evaluation`, { headers, data: {
-    feedback: 'Adição explicada com clareza. <b>Texto literal</b>',
-    skills: [{ skill_id: skillId, classification: 'MET', justification: 'A resposta demonstra soma e resultado.' }],
-  } })
-  expect(evaluation.status()).toBe(201)
+  await expect(page.getByRole('link', { name: 'Revisar', exact: true })).toHaveCount(0)
+  const adminPage = await context.newPage()
+  adminPage.on('dialog', dialog => dialog.accept())
+  await adminPage.goto('/entrar'); await login(adminPage, 'reviewer@qa.example', password)
+  await adminPage.getByRole('link', { name: 'Revisar', exact: true }).click()
+  await adminPage.getByRole('link', { name: `Revisar tentativa #${attemptId}`, exact: true }).click()
+  await expect(adminPage.locator('.attempt-context')).toContainText(answer.trim())
+  await adminPage.getByLabel('Feedback geral', { exact: true }).fill('Adição explicada com clareza. <b>Texto literal</b>')
+  await adminPage.getByLabel(`Classificação da skill #${skillId}`, { exact: true }).selectOption('MET')
+  await adminPage.getByLabel(`Justificativa da skill #${skillId}`, { exact: true }).fill('A resposta demonstra soma e resultado.')
+  adminPage.removeAllListeners('dialog')
+  const dismissed = new Promise<void>(resolve => {
+    adminPage.once('dialog', async dialog => { await dialog.dismiss(); resolve() })
+  })
+  await adminPage.getByRole('link', { name: 'Voltar à fila de revisões' }).click()
+  await dismissed
+  await expect(adminPage.getByLabel('Feedback geral', { exact: true })).toHaveValue('Adição explicada com clareza. <b>Texto literal</b>')
+  adminPage.removeAllListeners('dialog')
+  adminPage.on('dialog', dialog => dialog.accept())
+  await noOverflow(adminPage)
+  await adminPage.screenshot({ path: testInfo.outputPath('admin-desktop.png'), fullPage: true })
+  await adminPage.setViewportSize({ width: 390, height: 844 }); await noOverflow(adminPage)
+  await adminPage.screenshot({ path: testInfo.outputPath('admin-mobile.png'), fullPage: true })
+  // The server commits, but the browser receives an error: reconcile without a second POST.
+  let submissions = 0
+  await adminPage.route(`**/reviews/attempts/${attemptId}/evaluation`, async route => {
+    submissions += 1
+    const response = await route.fetch()
+    expect(response.status()).toBe(201)
+    await route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"Response unavailable"}' })
+  })
+  await adminPage.getByRole('button', { name: 'Registrar avaliação', exact: true }).click()
+  await expect(adminPage.getByRole('alert')).toContainText('Não foi possível confirmar o envio')
+  await expect(adminPage.getByRole('button', { name: 'Registrar avaliação', exact: true })).toBeDisabled()
+  await adminPage.getByRole('button', { name: 'Consultar resultado do envio' }).click()
+  await expect(adminPage.getByRole('status')).toContainText('Avaliação registrada')
+  expect(submissions).toBe(1)
+  await expect(adminPage.locator('main b')).toHaveCount(0)
+  await adminPage.getByRole('link', { name: 'Voltar à fila de revisões' }).click()
+  await expect(adminPage.getByText('Nenhuma revisão nesta página.', { exact: true })).toBeVisible()
+  await adminPage.close()
   await page.getByRole('button', { name: 'Atualizar avaliação' }).click()
   await expect(page.getByRole('heading', { name: 'Feedback geral' })).toBeVisible()
   await expect(page.locator('.evaluation-skills')).toContainText('Atendido')
+  await expect(page.getByRole('link', { name: 'Revisar conteúdos desta habilidade' })).toHaveAttribute('href', `/estudar?skill=${skillId}`)
   await expect(page.locator('main b')).toHaveCount(0)
   await page.locator('.attempt-evaluation').scrollIntoViewIfNeeded(); await noOverflow(page)
   await page.screenshot({ path: testInfo.outputPath('desktop.png') })
@@ -57,4 +94,46 @@ test('ciclo real: tentativa, revisão e progresso do dono', async ({ page, reque
   await expect(page.getByRole('alert')).toContainText('Tentativa não encontrada')
   await expect(page.locator('.attempt-evaluation')).toHaveCount(0)
   await expect(page).toHaveTitle('CodeTrack')
+})
+
+test('estudo: ADMIN publica e leitura permanece isolada por conta', async ({ page }, testInfo) => {
+  if (process.env.CODETRACK_QA_DISPOSABLE !== '1' || !process.env.QA_PASSWORD) throw new Error('Use o harness descartável.')
+  const password = process.env.QA_PASSWORD
+  page.on('dialog', dialog => dialog.accept())
+  await page.goto('/entrar'); await login(page, 'reviewer@qa.example', password)
+  await page.getByRole('link', { name: 'Estudar', exact: true }).click()
+  await page.getByRole('link', { name: 'Cadastrar conteúdo', exact: true }).click()
+  await page.getByLabel('Habilidade', { exact: true }).selectOption({ label: 'Python' })
+  await page.getByLabel('Título', { exact: true }).fill('Somar valores em Python')
+  await page.getByLabel('Explicação', { exact: true }).fill('Use + para somar. <b>Texto literal</b>')
+  await page.getByLabel('Exemplo de código', { exact: true }).fill('print(1 + 1)')
+  await page.getByLabel('Erros comuns', { exact: true }).fill('Strings concatenam; números somam.')
+  await page.getByRole('button', { name: 'Publicar conteúdo', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Conteúdo publicado')
+  await page.getByRole('button', { name: 'Abrir conteúdo publicado' }).click()
+  await expect(page.getByRole('heading', { name: 'Somar valores em Python' })).toBeVisible()
+  const path = new URL(page.url()).pathname
+  await page.getByRole('button', { name: 'Sair', exact: true }).click()
+  await login(page, 'owner@qa.example', password)
+  await page.getByRole('link', { name: 'Estudar', exact: true }).click()
+  await expect(page.getByRole('link', { name: 'Cadastrar conteúdo', exact: true })).toHaveCount(0)
+  await page.getByRole('link', { name: 'Estudar: Somar valores em Python' }).click()
+  await expect(page.locator('main b')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Marcar como estudado' }).click()
+  await expect(page.getByRole('status')).toContainText('Conteúdo marcado como estudado')
+  for (const theme of ['light', 'dark']) {
+    await page.getByLabel('Tema da interface').selectOption(theme)
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 }); await noOverflow(page)
+      await page.screenshot({ path: testInfo.outputPath(`study-${theme}-${width}.png`), fullPage: true, animations: 'disabled' })
+    }
+  }
+  await page.reload(); await login(page, 'owner@qa.example', password)
+  await expect(page.getByRole('status')).toContainText('Conteúdo marcado como estudado')
+  expect(new URL(page.url()).pathname).toBe(path)
+  await page.getByRole('button', { name: 'Sair', exact: true }).click()
+  await login(page, 'other@qa.example', password)
+  await page.getByRole('link', { name: 'Estudar', exact: true }).click()
+  await page.getByRole('link', { name: 'Estudar: Somar valores em Python' }).click()
+  await expect(page.getByRole('button', { name: 'Marcar como estudado' })).toBeVisible()
 })

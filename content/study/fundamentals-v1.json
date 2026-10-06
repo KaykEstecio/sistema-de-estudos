@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "prepared_at": "2026-10-06",
+  "status": "ready_for_editorial_review",
+  "authorship": "Textos, exemplos e exercícios originais preparados para CodeTrack; referências externas para conferência e aprofundamento, sem afiliação ou endosso.",
+  "lessons": [
+    {
+      "key": "python-values-01",
+      "skill_slug": "python",
+      "title": "01 · Python: texto não é número",
+      "explanation": "Objetivo: distinguir texto de inteiro e prever o resultado de uma soma. Pré-requisito: conseguir executar um arquivo Python. Tempo sugerido: 8–12 minutos, incluindo prática.\n\nAspas indicam texto. Por isso, juntar duas strings com + é diferente de somar dois inteiros. int converte uma representação inteira válida em número; uma entrada como 'dois' exige tratamento de erro, assunto de uma próxima aula. Uma variável guarda uma referência ao valor usado naquele momento.\n\nAntes de executar o exemplo, anote as duas saídas que espera. Depois compare: a primeira é 46; a segunda é 10. Explique em voz alta por que o mesmo símbolo + produziu resultados diferentes.\n\nPratique sem copiar: uma inscrição tem '7' adultos e '3' crianças, ambos recebidos como texto. Calcule o total numérico. Critério: resultado 10 e explicação da conversão. Depois teste '0' e '3': resultado 3. Releia somente se não conseguir explicar a diferença entre concatenação e soma.",
+      "code_example": "adultos = '4'\ncriancas = '6'\nprint(adultos + criancas)\nprint(int(adultos) + int(criancas))\n",
+      "common_mistakes": "Esperar soma ao usar duas strings. Converter somente uma delas e misturar int com str. Supor que int aceita qualquer texto. Memorizar a saída sem explicar o tipo de cada valor.\n\nAutocorreção: '7' + '3' produz '73'; int('7') + int('3') produz 10. A conversão muda o tipo usado na operação.",
+      "runtime": "python",
+      "expected_stdout": "46\n10\n",
+      "sources": [
+        {"title": "Python — números e texto", "url": "https://docs.python.org/3/tutorial/introduction.html", "role": "Conferência técnica"},
+        {"title": "University of Helsinki — Information from the user", "url": "https://programming-26.mooc.fi/part-1/2-information-from-the-user/", "role": "Aprofundamento com exercícios"},
+        {"title": "Curso em Vídeo — Python 3, Mundo 1", "url": "https://www.cursoemvideo.com/curso/python-3-mundo-1/", "role": "Complemento em português; assistir e depois praticar"}
+      ]
+    },
+    {
+      "key": "logic-boundaries-01",
+      "skill_slug": "logic",
+      "title": "01 · Lógica: decisões e casos de fronteira",
+      "explanation": "Objetivo: transformar uma regra simples em uma decisão e testar seus limites. Pré-requisito: variáveis e comparação de números em Python. Tempo sugerido: 10–15 minutos.\n\nRegra deste exercício: inscrições de equipes com pelo menos 5 pessoas recebem a mensagem 'equipe'; as demais recebem 'individual'. A condição pessoas >= 5 inclui exatamente 5. Em if/else, apenas um dos dois blocos será executado.\n\nTeste 4, 5 e 6. O valor 5 é a fronteira: usar > em vez de >= mudaria a regra. Escreva uma pequena tabela com entrada e saída esperada antes de executar. No exemplo, a saída é equipe.\n\nPratique: uma sala aceita no máximo 12 participantes. Mostre 'permitido' quando a quantidade for menor ou igual a 12 e 'lotado' acima disso. Para este exercício, a entrada já é um inteiro não negativo. Critério: 11 e 12 permitem, 13 não permite. Explique por que esses três casos são mais informativos do que testar apenas 3.",
+      "code_example": "pessoas = 5\nif pessoas >= 5:\n    print('equipe')\nelse:\n    print('individual')\n",
+      "common_mistakes": "Trocar >= por >. Colocar os dois prints fora dos blocos. Confundir atribuição = com comparação ==. Testar apenas valores distantes da fronteira.\n\nAutocorreção da prática: quantidade <= 12 é a condição. Testar o limite e seus vizinhos ajuda a revelar a troca de operador.",
+      "runtime": "python",
+      "expected_stdout": "equipe\n",
+      "sources": [
+        {"title": "Python — if statements", "url": "https://docs.python.org/3/tutorial/controlflow.html#if-statements", "role": "Conferência da sintaxe"},
+        {"title": "Curso em Vídeo — Aula 10, Condições", "url": "https://www.youtube.com/watch?v=K10u3XIf1-Q", "role": "Vídeo complementar oficial em português; título e autoria conferidos, sem revisão integral do vídeo"}
+      ]
+    },
+    {
+      "key": "python-accumulator-02",
+      "skill_slug": "python",
+      "title": "02 · Python: acompanhar um acumulador",
+      "explanation": "Objetivo: explicar como uma repetição constrói um resultado. Pré-requisitos: inteiros, atribuição e lista de valores. Tempo sugerido: 10–15 minutos.\n\nO for visita cada item da lista. O acumulador começa em zero e recebe o resultado da soma anterior com o item atual. No exemplo, os valores de total são 0, depois 12, depois 20 e finalmente 25. Faça esse rastreamento no papel antes de executar. A saída final é 25.\n\nPratique sem copiar: some as páginas lidas em três sessões, [6, 9, 4]. Critério: resultado 19 e descrição do valor acumulado após cada sessão. Depois use a lista vazia: o resultado deve continuar zero.\n\nPergunta de transferência: se você precisasse contar sessões em vez de somar páginas, o que acrescentaria ao acumulador em cada passagem? Resposta: 1. Volte a essa pergunta no próximo estudo, antes de reler a explicação.",
+      "code_example": "minutos = [12, 8, 5]\ntotal = 0\nfor duracao in minutos:\n    total = total + duracao\nprint(total)\n",
+      "common_mistakes": "Reiniciar total dentro do laço e perder o resultado anterior. Somar 1 quando a tarefa pede a soma dos valores. Imprimir dentro do laço quando se deseja somente o resultado final.\n\nAutocorreção: [6, 9, 4] produz acumulados 6, 15 e 19; [] deixa o acumulador em 0.",
+      "runtime": "python",
+      "expected_stdout": "25\n",
+      "sources": [
+        {"title": "Python — for statements", "url": "https://docs.python.org/3/tutorial/controlflow.html#for-statements", "role": "Conferência técnica"},
+        {"title": "Harvard CS50P", "url": "https://cs50.harvard.edu/python/", "role": "Curso institucional complementar; tópico Loops"}
+      ]
+    },
+    {
+      "key": "sql-select-01",
+      "skill_slug": "sql",
+      "title": "01 · SQL: selecionar, filtrar e ordenar",
+      "explanation": "Objetivo: retornar somente os dados pedidos, com ordem explícita. Pré-requisito: compreender tabelas, linhas e colunas. Tempo sugerido: 10–15 minutos.\n\nSELECT escolhe as colunas; FROM identifica a fonte; WHERE seleciona linhas que satisfazem uma condição; ORDER BY define a ordenação. Sem ORDER BY, não conte com uma ordem fixa. O exemplo usa uma tabela temporária ao comando, formada por VALUES, e pode ser executado em PostgreSQL sem criar tabela permanente.\n\nAntes de executar, decida quais registros têm pelo menos 20 minutos. Resultado esperado: Bruno, 35; Lia, 20, nessa ordem.\n\nPratique: altere o filtro para pelo menos 15 minutos e ordene do menor para o maior, com nome como desempate. Critério: Rui, 15; Lia, 20; Bruno, 35. Explique por que mudar ORDER BY não muda quais linhas passam no filtro.",
+      "code_example": "WITH sessoes(nome, minutos) AS (\n    VALUES ('Lia', 20), ('Bruno', 35), ('Rui', 15)\n)\nSELECT nome, minutos\nFROM sessoes\nWHERE minutos >= 20\nORDER BY minutos DESC, nome ASC;\n",
+      "common_mistakes": "Esperar que WHERE ordene os dados. Usar > e excluir o valor da fronteira. Selecionar todas as colunas sem necessidade. Depender da ordem de inserção.\n\nAutocorreção: use minutos >= 15 e ORDER BY minutos ASC, nome ASC. O filtro decide a inclusão; a ordenação decide a apresentação.",
+      "runtime": "postgresql",
+      "expected_rows": [["Bruno", 35], ["Lia", 20]],
+      "sources": [{"title": "PostgreSQL — Querying a Table", "url": "https://www.postgresql.org/docs/current/tutorial-select.html", "role": "Conferência técnica; exemplo compatível com PostgreSQL 17 do projeto"}]
+    },
+    {
+      "key": "http-message-01",
+      "skill_slug": "http",
+      "title": "01 · HTTP: entender pedido e resposta",
+      "explanation": "Objetivo: identificar método, caminho, status e tipo de conteúdo em uma troca HTTP. Pré-requisito: noção de cliente e servidor. Tempo sugerido: 8–12 minutos.\n\nO cliente envia uma requisição; o servidor devolve uma resposta. No exemplo didático, GET pede a lista de conteúdos de uma habilidade. O status 200 sinaliza sucesso desta operação e Content-Type informa que o corpo é JSON. Um JSON válido, sozinho, não prova que a operação teve sucesso: examine também o status e o contrato da API.\n\nA troca abaixo é ilustrativa; não deve ser colada como código Python nem pressupõe uma rota pública real.\n\nPratique no CodeTrack: abra a aba Network do navegador e consulte a biblioteca. Identifique método, caminho e status sem copiar tokens ou outros cabeçalhos privados. Critério: explicar qual trecho é o pedido e qual é a resposta. Para uma falha, registre apenas o status e a mensagem pública, nunca credenciais.",
+      "code_example": "GET /api/v1/study?skill_id=7 HTTP/1.1\nHost: exemplo.local\nAccept: application/json\n\nHTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"items\": [], \"total\": 0, \"limit\": 10, \"offset\": 0}\n",
+      "common_mistakes": "Confundir o caminho da requisição com o corpo da resposta. Tratar uma lista vazia como falha de rede. Considerar qualquer resposta JSON um sucesso. Compartilhar Authorization ou cookies em capturas.\n\nAutocorreção: uma lista vazia com 200 pode ser uma consulta válida sem resultados; o status e o contrato precisam ser interpretados juntos.",
+      "runtime": "illustrative-http",
+      "sources": [{"title": "MDN — Overview of HTTP", "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview", "role": "Conferência de requisição, resposta e cabeçalhos"}]
+    },
+    {
+      "key": "git-staging-01",
+      "skill_slug": "git",
+      "title": "01 · Git: preparar um commit consciente",
+      "explanation": "Objetivo: explicar a diferença entre editar um arquivo, prepará-lo e registrar um commit. Pré-requisitos: Git instalado, um repositório de exercício e identidade Git configurada. Tempo sugerido: 10–15 minutos.\n\nO arquivo de trabalho pode mudar sem estar preparado para commit. git add prepara seu conteúdo naquele momento. git diff --staged mostra o que será registrado. Se editar depois do add, a nova alteração não entra automaticamente no próximo commit. Um commit é local; ele não envia alterações ao GitHub.\n\nEm um repositório descartável, crie notas.txt com uma frase. Execute os comandos abaixo. Antes do commit, confira se o diff contém somente a frase desejada.\n\nPratique: prepare uma primeira frase, acrescente uma segunda sem executar add novamente e compare git diff com git diff --staged. Critério: identificar a segunda frase como alteração ainda não preparada. Não faça esse exercício no repositório de trabalho do CodeTrack.",
+      "code_example": "git status --short\ngit add notas.txt\ngit diff --staged\ngit commit -m \"docs: registra primeira anotacao\"\ngit status --short\n",
+      "common_mistakes": "Usar git add . sem revisar arquivos. Incluir .env ou senhas. Achar que commit equivale a push. Supor que alterações feitas depois do add já estão preparadas.\n\nAutocorreção: git diff compara alterações ainda não preparadas; git diff --staged permite revisar a área de preparação em relação ao último commit.",
+      "runtime": "git-disposable-repository",
+      "sources": [{"title": "Pro Git — Recording Changes to the Repository", "url": "https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository", "role": "Conferência do ciclo editar, preparar e registrar"}]
+    }
+  ]
+}

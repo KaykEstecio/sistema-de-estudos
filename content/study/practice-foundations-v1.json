@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "prepared_at": "2026-10-06",
+  "authorship": "Aulas, exemplos e exercícios originais para CodeTrack. Referências para conferência e aprofundamento; sem afiliação institucional.",
+  "lessons": [
+    {
+      "key": "python-functions-03",
+      "skill_slug": "python",
+      "title": "03 · Python: funções que devolvem resultados",
+      "explanation": "Objetivo: separar um cálculo da apresentação do resultado. Pré-requisitos: variáveis e operações com inteiros. Tempo sugerido: 10–15 minutos.\n\nUma função reúne uma operação com nome. Parâmetros recebem os valores da chamada; return devolve o resultado a quem chamou. print apenas exibe uma informação. Usar return permite aproveitar o cálculo em outra conta ou conferir o resultado em um teste.\n\nNo exemplo, o contrato aceita quantidades e minutos por sessão como inteiros não negativos, já validados. Primeiro, preveja o resultado: quatro sessões de quinze minutos totalizam 60; acrescentar cinco minutos produz 65. O print fica fora da função porque exibir e calcular são responsabilidades distintas.\n\nPratique sem copiar: escreva paginas_restantes(total, lidas), supondo 0 <= lidas <= total. Ela deve devolver a diferença, sem imprimir. Critério: (40, 12) retorna 28 e (40, 40) retorna 0. Explique como usaria esse retorno para planejar a próxima sessão.",
+      "code_example": "def minutos_planejados(sessoes, minutos_por_sessao):\n    return sessoes * minutos_por_sessao\n\ntotal = minutos_planejados(4, 15)\nprint(total)\nprint(total + 5)\n",
+      "common_mistakes": "Substituir return por print e depois tentar calcular com None. Esquecer os parênteses na chamada. Usar variáveis globais quando os dados deveriam chegar por parâmetros.\n\nAutocorreção: return total - lidas atende ao contrato da prática. Entradas fora das premissas exigiriam validação adicional, que não está escondida no exemplo.",
+      "runtime": "python",
+      "expected_stdout": "60\n65\n",
+      "sources": [{"title": "Python — Defining Functions", "url": "https://docs.python.org/3/tutorial/controlflow.html#defining-functions", "role": "Conferência técnica"}]
+    },
+    {
+      "key": "python-validation-04",
+      "skill_slug": "python",
+      "title": "04 · Python: tratar uma entrada inválida",
+      "explanation": "Objetivo: distinguir falha de conversão de um valor fora da regra. Pré-requisitos: strings, int, funções e condicionais. Tempo sugerido: 12–18 minutos.\n\nNosso contrato recebe uma string que representa uma quantidade inteira não negativa. int pode converter '8', mas levanta ValueError para 'oito'. Já '-2' é um inteiro válido para Python, porém inválido para essa regra de quantidade. São problemas diferentes.\n\nO try envolve somente a conversão esperada; except ValueError trata essa falha específica. Depois verificamos o sinal. Nesta função, None significa entrada inválida e zero continua sendo um resultado válido. Antes de executar, preveja as quatro saídas: 8, None, None e 0.\n\nPratique: adapte a função para aceitar somente quantidades de 1 a 10. Critério: '1' e '10' são aceitos; '0', '11' e 'abc' devolvem None. Explique por que converter para inteiro não basta para validar uma regra de negócio.",
+      "code_example": "def quantidade(texto):\n    try:\n        valor = int(texto)\n    except ValueError:\n        return None\n    if valor < 0:\n        return None\n    return valor\n\nfor entrada in ['8', 'oito', '-2', '0']:\n    print(quantidade(entrada))\n",
+      "common_mistakes": "Capturar qualquer erro com except sem especificar a exceção e esconder defeitos de programação. Usar if not valor e tratar zero como erro por acidente. Confundir conversão bem-sucedida com cumprimento da regra.\n\nAutocorreção: após converter, rejeite valores menores que 1 ou maiores que 10. O contrato recebe str; suportar objetos de outros tipos exigiria outra decisão explícita.",
+      "runtime": "python",
+      "expected_stdout": "8\nNone\nNone\n0\n",
+      "sources": [{"title": "Python — Handling Exceptions", "url": "https://docs.python.org/3/tutorial/errors.html#handling-exceptions", "role": "Conferência de try e exceções específicas"}]
+    },
+    {
+      "key": "python-tests-05",
+      "skill_slug": "python",
+      "title": "05 · Python: testar o comportamento de uma função",
+      "explanation": "Objetivo: transformar uma regra em verificações que detectam erros. Pré-requisitos: funções, return e condicionais. Tempo sugerido: 12–18 minutos.\n\nRegra do exercício: uma sala aceita quantidades inteiras de 1 a 12, inclusive. A função deve devolver True ou False. Antes de escrever testes, anote resultados esperados com base nessa regra, não copiando a implementação. Testes nas fronteiras ajudam a encontrar a troca de <= por <.\n\nO exemplo usa assert para conferir resultados e pode ser executado com Python normal, sem instalar biblioteca. AssertionError indica uma verificação que falhou. Não execute com -O, pois essa opção desativa asserts; assert também não substitui validação de entradas da aplicação.\n\nPratique: altere temporariamente <= 12 para < 12. Qual teste precisa falhar? Critério: o caso 12 detecta o defeito. Restaure a função e acrescente o caso 13, que deve retornar False. Explique por que testar somente 5 deixaria esse erro passar.",
+      "code_example": "def cabe_na_sala(quantidade):\n    return 1 <= quantidade <= 12\n\nassert cabe_na_sala(0) is False\nassert cabe_na_sala(1) is True\nassert cabe_na_sala(5) is True\nassert cabe_na_sala(12) is True\nprint('4 verificacoes passaram')\n",
+      "common_mistakes": "Escolher apenas exemplos que passam. Reproduzir a mesma fórmula da função no resultado esperado. Considerar muitos testes prova de ausência de defeitos. Usar asserts para autorização ou validação de produção.\n\nAutocorreção: assert cabe_na_sala(13) is False. Os testes verificam o contrato para inteiros; tipos inválidos não fazem parte deste exercício.",
+      "runtime": "python",
+      "expected_stdout": "4 verificacoes passaram\n",
+      "sources": [{"title": "Harvard CS50P — Unit Tests", "url": "https://cs50.harvard.edu/python/notes/5/", "role": "Aprofundamento institucional sobre testes e assert"}]
+    },
+    {
+      "key": "sql-join-02",
+      "skill_slug": "sql",
+      "title": "02 · SQL: relacionar dados com JOIN",
+      "explanation": "Objetivo: combinar duas fontes por uma chave e reconhecer quem fica sem correspondência. Pré-requisitos: SELECT, FROM e ORDER BY. Tempo sugerido: 12–18 minutos.\n\nCada sessão guarda aluno_id, que corresponde ao id de um aluno. JOIN com ON conecta registros por essa relação. Se um aluno tiver duas sessões, aparecerá duas vezes no resultado; isso é consequência da relação, não duplicação acidental.\n\nO exemplo usa apenas CTEs com VALUES e não cria tabelas permanentes. Preveja três linhas: Bia/10, Bia/20 e Caio/15. Dani não aparece, pois não tem sessão correspondente e estamos usando INNER JOIN.\n\nPratique: substitua JOIN por LEFT JOIN e observe Dani. Critério: Dani aparece com minutos NULL; não com zero. Explique por que ausência de registro não é o mesmo que uma sessão de zero minutos. Ao interpretar as linhas, identifique quais colunas vêm de cada fonte.",
+      "code_example": "WITH alunos(id, nome) AS (\n    VALUES (1, 'Bia'), (2, 'Caio'), (3, 'Dani')\n), sessoes(aluno_id, minutos) AS (\n    VALUES (1, 10), (1, 20), (2, 15)\n)\nSELECT a.nome, s.minutos\nFROM alunos AS a\nJOIN sessoes AS s ON s.aluno_id = a.id\nORDER BY a.id, s.minutos;\n",
+      "common_mistakes": "Relacionar IDs sem entender o significado de cada coluna. Supor uma linha por aluno mesmo quando há várias sessões. Esperar que INNER JOIN preserve alunos sem correspondência. Interpretar NULL como zero.\n\nAutocorreção: LEFT JOIN preserva todas as linhas da fonte à esquerda; as colunas da direita ficam NULL quando não há correspondência.",
+      "runtime": "postgresql",
+      "expected_rows": [["Bia", 10], ["Bia", 20], ["Caio", 15]],
+      "sources": [{"title": "PostgreSQL 17 — Joins Between Tables", "url": "https://www.postgresql.org/docs/17/tutorial-join.html", "role": "Conferência técnica de INNER e LEFT JOIN"}]
+    }
+  ]
+}

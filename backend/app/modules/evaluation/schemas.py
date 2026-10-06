@@ -3,7 +3,7 @@
 from typing import Annotated, Literal
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints, field_validator
 from app.modules.categories.schemas import CatalogId
-from app.modules.attempts.schemas import AttemptRead
+from app.modules.attempts.schemas import AttemptRead, AttemptSummary
 
 Classification = Literal["NOT_MET", "PARTIALLY_MET", "MET", "INSUFFICIENT_EVIDENCE"]
 Feedback = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=4000)]
@@ -42,3 +42,10 @@ class EvaluationRead(BaseModel):
 class ReviewRead(BaseModel):
     attempt: AttemptRead
     evaluation: EvaluationRead | None
+
+
+class ReviewPage(BaseModel):
+    items: list[AttemptSummary]
+    total: int
+    limit: int
+    offset: int

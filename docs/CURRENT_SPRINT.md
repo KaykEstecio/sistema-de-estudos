@@ -2,13 +2,53 @@
 
 ## Sprint atual
 
-SPRINT 12 — DEPLOY INICIAL (PLANEJAMENTO)
+SPRINT 12B — ESTUDO POR HABILIDADE
+
+Autorizada em 06/10/2026: biblioteca de conteúdos curtos associados a uma skill,
+cadastro manual pelo ADMIN (título, explicação, exemplo e erros comuns), leitura
+autenticada e marcação idempotente de estudado por conta, sem alterar UserSkill.
+Desafios e feedback oferecem acesso aos materiais pelas skills relacionadas.
+Primeiro recorte: publicação direta confirmada pelo ADMIN; sem edição/versionamento
+de conteúdo, trilhas, execução automática ou gamificação. Conteúdo de skill
+inativa fica indisponível. Validar autorização, isolamento e independência do score.
+
+Recorte concluído em [STUDY_AREA.md](STUDY_AREA.md). Biblioteca, cadastro ADMIN,
+leitura, conclusão individual e links em desafio/feedback implementados.
+Validação: build/tipos, 341 testes backend completos e 16 navegador aprovados;
+migration 0009 aplicada localmente e Alembic check sem diferenças. Sem seed,
+commit ou deploy. Próximo passo do recorte: cadastrar conteúdo pedagógico revisado
+com uma conta ADMIN existente e experimentar o percurso de estudo/prática.
+
+Curadoria de 06/10/2026: seis aulas autorais pesquisadas e publicadas localmente,
+com referências institucionais/documentação/educador e exemplos verificados.
+Conta indicada pelo usuário habilitada como ADMIN; catálogo inicial com cinco
+skills. Evidências e limites em [CONTENT_CURATION.md](CONTENT_CURATION.md).
+Segundo lote publicado na mesma data: quatro aulas de funções, entrada inválida,
+testes e JOIN. Total local: dez conteúdos; exemplos e variantes verificados.
+Próximo passo: experimentar o percurso e recolher dificuldades antes de ampliar.
+
+## Sprint 12A — painel de revisão concluído localmente
+
+Usuário adiou o deploy e autorizou o painel em 05/10/2026. Recorte atual:
+fila paginada de tentativas submetidas sem avaliação (exceto próprias), consulta
+do snapshot/resposta e avaliação manual por habilidade com feedback. Acesso
+ADMIN validado no backend; manter idempotência, concorrência e atualização de
+skills existentes. Sem edição de avaliações, execução de código ou gestão de
+catálogo nesta etapa. Implementado em [ADMIN_REVIEW_PANEL.md](ADMIN_REVIEW_PANEL.md):
+fila, detalhe, formulário e recuperação após envio incerto. Build e 22 testes
+backend direcionados aprovados; 15 testes de navegador aprovados, incluindo
+revisão pela interface, saída cancelada e reconciliação de envio com resposta
+perdida, sem segundo POST. Capturas desktop/mobile inspecionadas; cleanup
+confirmado. Sem commit, deploy ou criação de ADMIN no banco local.
+
+## Deploy adiado
 
 Planejamento iniciado em 05/10/2026. S12-T01 concluída em
 [DEPLOY_PLAN.md](DEPLOY_PLAN.md); nenhuma publicação/configuração de produção.
-Próxima tarefa: S12-T02 — definir contrato de configuração, roteamento,
-migrations, validação e recuperação. Implementação e criação de recursos
-dependem dessas definições; não implementar funcionalidades novas de produto.
+S12-T02 concluída: contrato de configuração, roteamento, migrations, validação
+e recuperação em [DEPLOY_CONTRACT.md](DEPLOY_CONTRACT.md).
+S12-T03 adiada por decisão explícita do usuário: priorizar funcionalidades locais.
+Nenhum recurso externo criado. Não continuar deploy sem novo pedido.
 
 ## Refinamento visual autorizado em 05/10/2026
 
