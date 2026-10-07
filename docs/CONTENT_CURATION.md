@@ -92,6 +92,29 @@ defeito deliberado na fronteira detectado por AssertionError; consultas INNER e
 LEFT JOIN verificadas no PostgreSQL, incluindo Dani/NULL na variante esquerda.
 Não houve alteração de código funcional, dependência ou migration neste lote.
 
-Próximo passo: experimentar o percurso com as dez aulas e registrar dificuldades
-antes de ampliar a biblioteca. Exercícios continuam autônomos; transformá-los em
-desafios avaliáveis exige um recorte de autoria e critérios de revisão próprios.
+## Práticas avaliáveis — 07/10/2026
+
+Recorte S12C autorizado e descrito em [STUDY_PRACTICE.md](STUDY_PRACTICE.md).
+Dez desafios autorais em [challenges-v1.json](../content/study/challenges-v1.json),
+derivados das dez aulas, com critérios públicos por skill e revisão manual-v1.
+Publicados pela API administrativa com a conta já designada, IDs locais 1–10:
+criação inativa seguida de ativação explícita, sem sobrescrever conteúdo existente.
+O JSON é fonte editorial; não é seed ou importador automático.
+
+Dez payloads validados por ChallengeCreate; referências cruzadas de aula/skill
+conferidas. Casos de seis práticas Python/lógica e quatro consultas PostgreSQL
+conferidos. Cenário Git executado em repositório temporário, incluindo alteração
+depois de add; nenhuma configuração global modificada. HTTP revisado como troca
+ilustrativa, sem chamadas ao domínio do exemplo. Dificuldades são estimativas.
+
+Próximo passo pedagógico: experimentar com alunos e registrar dificuldades antes
+de ampliar a biblioteca. A validação técnica não comprova eficácia educacional.
+
+## Ordem de leitura — 07/10/2026
+
+S12E: [reading-order-v1.json](../content/study/reading-order-v1.json) registra
+as cinco sequências editoriais e suas justificativas. Dez aulas ordenadas pela
+API ADMIN, em posições 10, 20 etc., sem IDs fixos no frontend. Python apresenta
+funções antes das práticas que as utilizam; SQL apresenta SELECT antes de JOIN.
+Números nos títulos históricos não determinam essa ordenação. Sem alterar textos,
+leituras ou scores existentes. Não equivale a pré-requisito obrigatório.

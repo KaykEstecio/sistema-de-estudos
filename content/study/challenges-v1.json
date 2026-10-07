@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "prepared_at": "2026-10-07",
+  "authorship": "Desafios originais derivados das práticas dos lotes de estudo. Critérios públicos; revisão manual-v1. Não há solução privada ou execução automática.",
+  "challenges": [
+    {
+      "lesson_key": "python-values-01",
+      "skill_slug": "python",
+      "title": "Prática 01 · Python: somar entradas numéricas",
+      "challenge_type": "CODE",
+      "difficulty": "VERY_EASY",
+      "difficulty_score": 100,
+      "estimated_minutes": 15,
+      "description": "Objetivo: distinguir concatenação de soma. Pré-requisitos: strings, int e operações aritméticas.\n\nEscreva somar_textos(a, b), recebendo duas strings que representam inteiros válidos. Retorne a soma como inteiro, sem imprimir dentro da função. Não é necessário tratar entradas inválidas.\n\nCasos esperados: ('4', '6') → 10; ('0', '0') → 0; ('-3', '8') → 5.\n\nEntregue o código, os resultados dos três casos e uma explicação da diferença entre '4' + '6' e 4 + 6. Informe se os resultados foram previstos ou executados localmente.\n\nCritérios públicos — Python (100%): converter ambas as entradas; devolver inteiro correto nos três casos; explicar que strings concatenam e inteiros somam. A revisão considera código e explicação; não exige bibliotecas, input interativo ou tratamento de erros fora do contrato."
+    },
+    {
+      "lesson_key": "logic-boundaries-01",
+      "skill_slug": "logic",
+      "title": "Prática 02 · Lógica: testar a fronteira de uma decisão",
+      "challenge_type": "CODE_READING",
+      "difficulty": "VERY_EASY",
+      "difficulty_score": 120,
+      "estimated_minutes": 15,
+      "description": "Objetivo: representar uma regra com limite inclusivo. Pré-requisitos: comparação e decisões.\n\nUma atividade pode ser feita em equipe quando há pelo menos 3 participantes; abaixo disso, é individual. Considere apenas inteiros não negativos. Escreva pseudocódigo ou Python para decidir entre 'equipe' e 'individual'.\n\nEntregue a decisão para 0, 2, 3 e 4 participantes e explique o erro de usar participantes > 3. Resultados esperados: individual, individual, equipe, equipe, nessa ordem.\n\nCritérios públicos — Lógica (100%): representar o limite inclusivo; classificar corretamente os quatro casos; identificar 3 como caso que distingue > de >=. Sintaxe Python não é exigida se o pseudocódigo for inequívoco."
+    },
+    {
+      "lesson_key": "python-accumulator-02",
+      "skill_slug": "python",
+      "title": "Prática 03 · Python: acumular minutos de estudo",
+      "challenge_type": "CODE",
+      "difficulty": "EASY",
+      "difficulty_score": 180,
+      "estimated_minutes": 20,
+      "description": "Objetivo: rastrear um acumulador. Pré-requisitos: listas, for, funções e inteiros.\n\nEscreva total_minutos(sessoes) para somar uma lista de inteiros não negativos com um laço e um acumulador, sem usar sum. Retorne o total.\n\nCasos: [10, 0, 15] → 25; [] → 0; [7] → 7. Entregue código, resultados e o valor do acumulador após cada item de [10, 0, 15]: 10, 10, 25. Explique por que a inicialização fica antes do laço.\n\nCritérios públicos — Python (100%): inicializar em zero fora do laço; acumular cada item; retornar os três resultados; explicar o rastreamento e a lista vazia. Não exigir validação de tipos nem números negativos."
+    },
+    {
+      "lesson_key": "sql-select-01",
+      "skill_slug": "sql",
+      "title": "Prática 04 · SQL: filtrar e ordenar sessões",
+      "challenge_type": "SQL",
+      "difficulty": "EASY",
+      "difficulty_score": 150,
+      "estimated_minutes": 20,
+      "description": "Objetivo: usar SELECT, WHERE e ORDER BY. Pré-requisitos: tabelas e comparação.\n\nConsidere sessoes(nome, minutos) com ('Lia', 20), ('Bruno', 35), ('Rui', 15). Escreva uma consulta PostgreSQL que retorne nome e minutos somente quando minutos >= 20, em ordem decrescente de minutos. Você pode usar WITH sessoes(nome, minutos) AS (VALUES ('Lia',20),('Bruno',35),('Rui',15)) para experimentar sem criar tabelas.\n\nEntregue consulta, resultado esperado e explique se Lia permanece quando o filtro muda para > 20. Resultado original: Bruno/35, Lia/20, nessa ordem. Com > 20: apenas Bruno/35.\n\nCritérios públicos — SQL (100%): selecionar as duas colunas; usar limite inclusivo; ordenar explicitamente; apresentar as linhas esperadas; explicar a exclusão de Lia na variação. Não exigir INSERT, criação de tabelas ou operações destrutivas."
+    },
+    {
+      "lesson_key": "http-message-01",
+      "skill_slug": "http",
+      "title": "Prática 05 · HTTP: interpretar uma resposta",
+      "challenge_type": "API",
+      "difficulty": "VERY_EASY",
+      "difficulty_score": 100,
+      "estimated_minutes": 15,
+      "description": "Objetivo: distinguir requisição, resposta e representação. Pré-requisitos: leitura de texto e JSON.\n\nTroca ilustrativa, sem realizar chamadas:\nGET /aulas/7 HTTP/1.1\nHost: example.local\nAccept: application/json\n\nHTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"id\":7,\"titulo\":\"Funções\"}\n\nEntregue: método e caminho solicitados; status recebido; cabeçalho que descreve o formato da resposta; valor de titulo. Explique a diferença entre Accept e Content-Type nesta troca. Se o servidor devolver 404, podemos afirmar que recebemos a aula solicitada? Justifique sem supor um corpo que não foi informado.\n\nCritérios públicos — HTTP (100%): identificar GET e /aulas/7, 200, Content-Type e Funções; distinguir preferência do cliente de formato declarado da resposta; explicar que 404 indica recurso não encontrado e não garante o JSON da aula. Não enviar tokens, cookies ou dados pessoais."
+    },
+    {
+      "lesson_key": "git-staging-01",
+      "skill_slug": "git",
+      "title": "Prática 06 · Git: distinguir trabalho e staging",
+      "challenge_type": "CODE_READING",
+      "difficulty": "EASY",
+      "difficulty_score": 150,
+      "estimated_minutes": 15,
+      "description": "Objetivo: prever o conteúdo de um commit. Pré-requisitos: arquivo de trabalho, git add e commit.\n\nCenário: em um repositório de exercício, notas.txt contém apenas a linha 'primeira'. O autor executa git add notas.txt e depois acrescenta a linha 'segunda', sem novo add. Não houve commit anterior desse arquivo.\n\nSem executar comandos no repositório do CodeTrack, explique: o que git diff mostra; o que git diff --staged mostra; quais linhas entram em git commit nesse momento; qual comando prepararia também a segunda linha. Um commit envia dados ao GitHub automaticamente?\n\nCritérios públicos — Git (100%): diff mostra a segunda linha ainda não preparada; diff --staged mostra o novo arquivo com a primeira linha; commit contém somente a primeira; novo git add notas.txt prepara ambas; commit é local e envio remoto exige operação separada. Entrega textual é suficiente; não exigir instalação, credenciais ou hash real."
+    },
+    {
+      "lesson_key": "python-functions-03",
+      "skill_slug": "python",
+      "title": "Prática 07 · Python: devolver páginas restantes",
+      "challenge_type": "CODE",
+      "difficulty": "EASY",
+      "difficulty_score": 180,
+      "estimated_minutes": 15,
+      "description": "Objetivo: usar parâmetros e return para reaproveitar um cálculo. Pré-requisitos: funções e subtração.\n\nEscreva paginas_restantes(total, lidas). As entradas são inteiros e satisfazem 0 <= lidas <= total. Retorne a diferença sem imprimir dentro da função.\n\nEntregue código, resultados de (40,12) → 28, (40,40) → 0 e (0,0) → 0. Mostre uma chamada que guarda o retorno em uma variável e explique por que trocar return por print impede reaproveitar o número da mesma maneira.\n\nCritérios públicos — Python (100%): usar os parâmetros; retornar os resultados pedidos; reaproveitar o retorno fora da função; distinguir o retorno numérico da exibição, cujo print retorna None. Não exigir validação de entradas fora das premissas."
+    },
+    {
+      "lesson_key": "python-validation-04",
+      "skill_slug": "python",
+      "title": "Prática 08 · Python: validar quantidades de 1 a 10",
+      "challenge_type": "CODE",
+      "difficulty": "EASY",
+      "difficulty_score": 240,
+      "estimated_minutes": 20,
+      "description": "Objetivo: separar conversão de validação da regra. Pré-requisitos: int, condicionais, funções, None e try/except ValueError.\n\nEscreva quantidade(texto), recebendo sempre str. Converta com int; aceite de 1 a 10 inclusive, retornando o inteiro. Para falha de conversão ou valor fora do intervalo, retorne None.\n\nEntregue código e resultados: '1' → 1; '10' → 10; '0', '11', 'abc' e '-2' → None. Explique por que converter '11' funciona, mas o resultado é inválido pela regra.\n\nCritérios públicos — Python (100%): tratar ValueError na conversão; verificar ambos os limites inclusivos; retornar os seis resultados; distinguir conversão de regra de negócio. Não exigir suporte a tipos diferentes de str nem mensagens interativas."
+    },
+    {
+      "lesson_key": "python-tests-05",
+      "skill_slug": "python",
+      "title": "Prática 09 · Python: detectar um erro de fronteira",
+      "challenge_type": "BUG_FIX",
+      "difficulty": "EASY",
+      "difficulty_score": 240,
+      "estimated_minutes": 20,
+      "description": "Objetivo: escrever testes que diferenciam a regra de uma implementação incorreta. Pré-requisitos: funções, booleanos e assert.\n\nRegra: uma sala aceita inteiros de 1 a 12 inclusive. Código defeituoso:\ndef cabe_na_sala(quantidade):\n    return 1 <= quantidade < 12\n\nEntregue a função corrigida e asserts com resultados explícitos para 0, 1, 5, 12 e 13 (False, True, True, True, False). Diga qual desses casos detecta o defeito original e por que testar apenas 5 não basta. Não use -O se executar, pois desativa asserts. Resultados previstos são aceitos se identificados como tal.\n\nCritérios públicos — Python (100%): corrigir o limite superior; testar os cinco casos com booleanos esperados; identificar 12 como contraexemplo; explicar a limitação de apenas um caso interno. Não exigir framework externo ou execução dentro do sistema."
+    },
+    {
+      "lesson_key": "sql-join-02",
+      "skill_slug": "sql",
+      "title": "Prática 10 · SQL: preservar alunos sem sessão",
+      "challenge_type": "SQL",
+      "difficulty": "EASY",
+      "difficulty_score": 250,
+      "estimated_minutes": 25,
+      "description": "Objetivo: comparar INNER JOIN e LEFT JOIN. Pré-requisitos: SELECT, aliases e chaves de relacionamento.\n\nDados: alunos(id,nome) = (1,'Bia'), (2,'Caio'), (3,'Dani'); sessoes(aluno_id,minutos) = (1,10), (1,20), (2,15). Escreva duas consultas PostgreSQL unindo a.id = s.aluno_id: uma com INNER JOIN e outra com LEFT JOIN a partir de alunos. Selecione nome e minutos, ordenando por nome e minutos. Não agregue as sessões. Pode usar CTEs com VALUES para testar sem criar tabelas.\n\nEntregue consultas e resultados. INNER: Bia/10, Bia/20, Caio/15. LEFT: essas linhas e Dani/NULL. Explique por que Bia aparece duas vezes e por que a ausência de sessão não significa minutos=0.\n\nCritérios públicos — SQL (100%): unir pela chave correta nas duas consultas; preservar Dani no LEFT; apresentar linhas e ordenação pedidas; explicar multiplicidade e NULL como ausência de valor correspondente, não zero. Não exigir COALESCE nem agregação."
+    }
+  ]
+}

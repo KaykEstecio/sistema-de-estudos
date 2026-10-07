@@ -680,3 +680,22 @@ Leitura é autenticada; a marcação de estudado é privada por usuário e idemp
 Concluir leitura não inicializa UserSkill, não altera score, não gera SkillEvidence
 e não representa domínio. Desafios e avaliações ligam materiais por skill sem
 alterar as regras de recomendação. Contrato em [STUDY_AREA.md](STUDY_AREA.md).
+
+Decisão S12C (07/10/2026): a leitura também oferece desafios do catálogo pela
+mesma skill, sem exigir conclusão da aula e sem chamar essa lista de recomendação
+personalizada. Critérios públicos pertencem ao enunciado e ao snapshot da tentativa;
+classificação manual e atualização de UserSkill seguem as políticas existentes.
+Recorte em [STUDY_PRACTICE.md](STUDY_PRACTICE.md).
+
+Decisão S12D (07/10/2026): ADMIN pode indicar ou remover uma prática principal
+por aula. Vínculo opcional, com desafio ativo que inclua a skill da aula e todas
+as suas skills ativas. A consulta oculta dinamicamente indicações indisponíveis
+ou incompatíveis, inclusive para ADMIN. Não exige conclusão da leitura, não
+altera recomendação personalizada nem evidências de domínio. Critérios continuam
+no snapshot da tentativa. Contrato em [LEARNING_IMPROVEMENTS.md](LEARNING_IMPROVEMENTS.md).
+
+Decisão S12E (07/10/2026): ordem editorial opcional por habilidade, configurada
+por ADMIN. A primeira leitura ainda não marcada é orientação de estudo, não
+recomendação de domínio. Todas as aulas permanecem acessíveis; conclusão de outra
+conta não interfere. Nenhuma atualização de UserSkill. Contrato e ordenação em
+[STUDY_GUIDANCE.md](STUDY_GUIDANCE.md).

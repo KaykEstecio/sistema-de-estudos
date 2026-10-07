@@ -29,12 +29,23 @@ class StudyQuery(BaseModel):
     offset: int = Field(default=0, ge=0)
 
 
+class StudyPracticeInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
+    challenge_id: int | None = Field(strict=True, ge=1, le=2147483647)
+
+
+class StudyOrderInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
+    study_order: int | None = Field(strict=True, ge=1, le=10000)
+
+
 class StudySummary(BaseModel):
     id: int
     skill_id: int
     skill_name: str
     title: str
     completed_at: AwareDatetime | None
+    study_order: int | None
 
 
 class StudyRead(StudySummary):
@@ -48,3 +59,5 @@ class StudyPage(BaseModel):
     total: int
     limit: int
     offset: int
+    has_sequence: bool = False
+    next_content: StudySummary | None = None

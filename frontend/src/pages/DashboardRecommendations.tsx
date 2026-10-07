@@ -141,7 +141,7 @@ function Suggestions({ client, skill, refreshContext }: { client: AxiosInstance;
   </div>
 }
 
-function StartAttempt({ client, id }: { client: AxiosInstance; id: number }) {
+export function StartAttempt({ client, id }: { client: AxiosInstance; id: number }) {
   const navigate = useNavigate()
   const pending = useRef<AbortController | null>(null)
   const [busy, setBusy] = useState(false)
@@ -157,7 +157,7 @@ function StartAttempt({ client, id }: { client: AxiosInstance; id: number }) {
     } catch (cause) {
       if (failed(cause, controller.signal)) {
         const status = axios.isAxiosError(cause) ? cause.response?.status : undefined
-        setError(status === 404 ? 'Desafio indisponível. Atualize as sugestões.'
+        setError(status === 404 ? 'Desafio indisponível. Atualize a lista de desafios.'
           : status === 409 ? 'Não foi possível iniciar outra tentativa deste desafio.'
           : 'Não foi possível confirmar o início. Consulte suas tentativas antes de tentar novamente.')
       }

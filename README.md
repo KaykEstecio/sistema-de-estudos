@@ -5,6 +5,24 @@ Na primeira execução, faça antes a [Preparação inicial](#preparação-inici
 
 ## Estado de implementação
 
+Sprint 12E: sequência de leitura opcional por habilidade, configurável pelo
+ADMIN, com indicação da primeira leitura ainda não marcada. Dez aulas locais
+organizadas; nenhuma alteração de score. Aplicar migration 0011 em outros
+ambientes. Build/tipos, 341 testes backend e 19 de navegador aprovados.
+Contrato em [STUDY_GUIDANCE.md](docs/STUDY_GUIDANCE.md).
+
+Sprint 12D: prática principal por aula, escolhida pelo ADMIN e validada no
+backend. Desafios adicionais ficam separados para exploração. As dez aulas
+locais já estão vinculadas; aplicar migration 0010 em outros ambientes.
+Build/tipos, 341 testes backend e 18 testes de navegador aprovados.
+Prioridades e contrato em [LEARNING_IMPROVEMENTS.md](docs/LEARNING_IMPROVEMENTS.md).
+
+Sprint 12C: dez desafios autorais com critérios públicos de revisão manual,
+publicados localmente e acessíveis pela habilidade no detalhe das aulas.
+Leitura → prática → tentativa reutiliza o ciclo existente de revisão e progresso.
+Contrato e limites em [STUDY_PRACTICE.md](docs/STUDY_PRACTICE.md).
+Validação atual: build/tipos e 17 testes de navegador aprovados.
+
 Sprint 12B entregue localmente: área de estudo por habilidade, publicação manual
 ADMIN, explicação/exemplo/erros comuns e conclusão individual sem alterar score.
 Links em desafios e feedback conectam estudo e prática. Aplicar migration 0009.
@@ -19,8 +37,11 @@ Deploy adiado pelo usuário; o planejamento da Sprint 12 fica preservado.
 
 Sprint 11 — testes e qualidade concluída: modos backend fast/complete, harness
 reproduzível de navegador, revisão de sessão/acesso/teclado e workflow Quality.
-Validação local: 340 testes backend e 11 navegador aprovados; CI remota ainda
-não executada. Evidências e limites no [fechamento](docs/SPRINT_11.md).
+Validação histórica da Sprint 11: 340 testes backend e 11 navegador aprovados.
+CI remota do commit 4d7d03a aprovada em 07/10/2026:
+[Quality](https://github.com/KaykEstecio/sistema-de-estudos/actions/runs/37633513444).
+Essa execução não inclui as alterações locais posteriores da Sprint 12C.
+Evidências históricas no [fechamento](docs/SPRINT_11.md).
 
 Sprint 1 concluída: cadastro, login JWT, identidade autenticada e verificação
 de permissões no backend. Evidências no [fechamento da Sprint 1](docs/SPRINT_1.md).

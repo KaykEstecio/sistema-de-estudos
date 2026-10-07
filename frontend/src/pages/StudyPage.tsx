@@ -5,6 +5,8 @@ import axios from 'axios'
 import { useAuth } from '../auth'
 import { useRegisterExitGuard } from '../exitGuard'
 import { getStudy, getStudyPage } from '../services/study'
+import StudyPractice from './StudyPractice'
+import StudyOrder from './StudyOrder'
 import type { StudyContent, StudyPage as StudyPageData, StudyInput } from '../services/study'
 
 const ignored = (cause: unknown) => axios.isCancel(cause) || (axios.isAxiosError(cause) && cause.response?.status === 401)
@@ -28,18 +30,25 @@ export default function StudyPage() {
     return () => controller.abort()
   }, [client, skillId, offset, reload, valid])
   return <main className="dashboard-main"><p className="eyebrow">Aprender antes de praticar</p><h1>Área de estudo</h1>
-    <p className="dashboard-note">Explicações e exemplos por habilidade. Marcar como estudado não altera seu score.</p>
+    <p className="dashboard-note">Explicações e exemplos por habilidade. Marcar como estudado não altera seu score. Para encontrar um ponto de partida, abra a sequência da habilidade em um dos cartões.</p>
     {user?.role === 'ADMIN' && <Link className="dashboard-action" to="/admin/conteudos/novo">Cadastrar conteúdo</Link>}
     {skill && <p className="dashboard-note">Conteúdos da skill #{skill}. <Link to="/estudar">Ver todas as habilidades</Link></p>}
     {!valid && <p className="error" role="alert">Habilidade inválida.</p>}
     {error && <p className="error" role="alert">{error} <button className="text-button" onClick={() => setReload(value => value + 1)}>Tentar novamente</button></p>}
     {valid && !data && !error && <p role="status">Carregando conteúdos…</p>}
     {valid && data && <>
+      {skillId && <section className="attempt-context" aria-label="Orientação de leitura">
+        <h2>Seu próximo passo de leitura</h2>
+        <p>Ordem sugerida pela equipe para esta habilidade. Você pode abrir qualquer aula; leitura não comprova domínio.</p>
+        {data.next_content ? <><h3>{data.next_content.title}</h3><Link className="dashboard-action" to={`/estudar/${data.next_content.id}`}>Continuar leitura: {data.next_content.title}</Link></>
+          : <p className="notice">{data.has_sequence ? 'Você marcou todas as leituras desta sequência. Revise o que precisar e pratique para produzir evidências.' : 'Esta habilidade ainda não tem uma sequência editorial. Confira os pré-requisitos nas aulas disponíveis.'}</p>}
+      </section>}
       <p role="status">{data.total} conteúdos · Página {Math.floor(offset / 10) + 1}</p>
       {data.items.length ? <ul className="recommendation-list">{data.items.map(item => <li key={item.id}>
         <p className="eyebrow">{item.skill_name}</p><h2>{item.title}</h2>
         <p>{item.completed_at ? 'Estudado' : 'Ainda não marcado como estudado'}</p>
         <Link className="dashboard-action" to={`/estudar/${item.id}`}>Estudar: {item.title}</Link>
+        {!skillId && <p><Link to={`/estudar?skill=${item.skill_id}`}>Ver sequência de {item.skill_name}</Link></p>}
       </li>)}</ul> : <p className="notice">Nenhum conteúdo disponível nesta página.{offset > 0 && <button className="text-button" onClick={() => setOffset(0)}>Voltar à primeira página</button>}</p>}
       <nav className="progress-pagination" aria-label="Páginas dos conteúdos"><button className="dashboard-action" disabled={offset === 0} onClick={() => setOffset(offset - 10)}>Anterior</button>
         <button className="dashboard-action" disabled={offset + 10 >= data.total} onClick={() => setOffset(offset + 10)}>Próxima</button></nav>
@@ -49,7 +58,7 @@ export default function StudyPage() {
 
 export function StudyDetailPage() {
   const { id } = useParams()
-  const { client } = useAuth()
+  const { client, user } = useAuth()
   const [data, setData] = useState<StudyContent | null>(null)
   const [error, setError] = useState('')
   const [reload, setReload] = useState(0)
@@ -85,6 +94,9 @@ export function StudyDetailPage() {
       <p className="dashboard-note">A leitura não comprova domínio e não altera seu score. Pratique para produzir evidências.</p>
       {data.completed_at ? <p className="notice" role="status">Conteúdo marcado como estudado.</p> : <button className="primary" disabled={busy} onClick={() => void complete()}>{busy ? 'Salvando…' : 'Marcar como estudado'}</button>}
       <p className="alternate"><Link to="/dashboard">Ir ao painel para praticar</Link></p>
+      <p><Link className="dashboard-action" to={`/estudar?skill=${data.skill_id}`}>Ver sequência de {data.skill_name}</Link></p>
+      <StudyPractice key={data.id} contentId={data.id} skillId={data.skill_id} skillName={data.skill_name} />
+      {user?.role === 'ADMIN' && <StudyOrder key={`order:${data.id}`} content={data} />}
     </>}
   </main>
 }

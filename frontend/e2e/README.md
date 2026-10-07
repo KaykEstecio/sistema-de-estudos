@@ -17,9 +17,16 @@ desktop 1440x1000 e mobile 390x844, mais dois cenários de tema por viewport.
 Inclui typecheck específico de QA. Casos controlados de tentativas usam tema claro;
 a jornada real usa tema escuro. Os testes de tema verificam alternância pelo
 sistema/teclado, persistência após reload, sincronização entre abas e storage
-bloqueado. Total atual do harness: 16 testes, sem usar contagem como critério fixo.
+bloqueado. Total atual do harness: 19 testes, sem usar contagem como critério fixo.
 O segundo caso real cobre publicação de conteúdo pelo ADMIN e leitura pessoal,
 persistência após login e isolamento entre contas, com capturas nos dois temas.
+O terceiro caso real cobre aula → prática → tentativa, catálogo vazio, paginação,
+recuperação de falha, ocultação de desafio inativo e critérios preservados no
+snapshot. Iniciar prática não marca a aula como estudada. Captura mobile incluída.
+O quarto caso real cobre indicação da prática pelo ADMIN, acesso pelo aluno,
+início do desafio específico e ocultação após desativação. Capturas em 390/1440 px.
+O quinto caso real cobre ordem editorial ADMIN, próxima leitura por habilidade,
+conclusão da sequência sem bloqueio e isolamento entre contas; captura mobile.
 No Linux/CI, dependências nativas do browser podem exigir
 `npx playwright install --with-deps chromium`, conforme a documentação oficial.
 

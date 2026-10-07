@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "prepared_at": "2026-10-07",
+  "purpose": "Sequência editorial de leitura por habilidade; não mede domínio e não bloqueia acesso.",
+  "sequences": [
+    {
+      "skill_slug": "python",
+      "reason": "Tipos e conversão antes de funções; funções antes das práticas de acumulador, validação e testes. Os números nos títulos antigos não definem a sequência.",
+      "lesson_keys": ["python-values-01", "python-functions-03", "python-accumulator-02", "python-validation-04", "python-tests-05"]
+    },
+    {
+      "skill_slug": "sql",
+      "reason": "Selecionar, filtrar e ordenar antes de combinar tabelas.",
+      "lesson_keys": ["sql-select-01", "sql-join-02"]
+    },
+    {"skill_slug": "logic", "reason": "Primeiro conteúdo disponível desta habilidade.", "lesson_keys": ["logic-boundaries-01"]},
+    {"skill_slug": "http", "reason": "Primeiro conteúdo disponível desta habilidade.", "lesson_keys": ["http-message-01"]},
+    {"skill_slug": "git", "reason": "Primeiro conteúdo disponível desta habilidade.", "lesson_keys": ["git-staging-01"]}
+  ]
+}

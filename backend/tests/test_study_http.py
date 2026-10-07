@@ -68,6 +68,74 @@ async def test_study_access_and_completion(migrated_database, monkeypatch):
             assert (await client.get('/api/v1/study', headers=other)).json()['items'][0]['completed_at'] is None
             assert (await client.get(f'/api/v1/study/{cid}?user_id={ids[1]}', headers=other)).status_code == 422
             assert (await client.put('/api/v1/study/2147483647/completion', headers=student)).status_code == 404
+            order_url = f'/api/v1/study/{cid}/order'
+            assert (await client.put(order_url, json={'study_order': 1})).status_code == 401
+            assert (await client.put(order_url, headers=student, json={'study_order': 1})).status_code == 403
+            for invalid in ({}, {'study_order': True}, {'study_order': 0}, {'study_order': 10001}, {'study_order': '1'}, {'study_order': 1, 'score': 5}):
+                assert (await client.put(order_url, headers=admin, json=invalid)).status_code == 422
+            initial = (await client.get(f'/api/v1/study?skill_id={skill_id}', headers=student)).json()
+            assert initial['has_sequence'] is False and initial['next_content'] is None
+            ordered = await client.put(order_url, headers=admin, json={'study_order': 10})
+            assert ordered.status_code == 200 and ordered.json()['study_order'] == 10
+            assert ordered.headers['cache-control'] == 'no-store'
+            assert (await client.put(order_url, headers=admin, json={'study_order': 10})).json() == ordered.json()
+            second_content = await client.post('/api/v1/study', headers=admin, json={**payload, 'title': 'Depois da soma'})
+            second_cid = second_content.json()['id']
+            second_order_url = f'/api/v1/study/{second_cid}/order'
+            await client.put(second_order_url, headers=admin, json={'study_order': 10})
+            guide_url = f'/api/v1/study?skill_id={skill_id}&limit=1&offset=50'
+            guide = (await client.get(guide_url, headers=student)).json()
+            assert guide['items'] == [] and guide['has_sequence'] is True
+            assert guide['next_content']['id'] == second_cid
+            assert (await client.get(guide_url, headers=other)).json()['next_content']['id'] == cid
+            ordered_page = (await client.get(f'/api/v1/study?skill_id={skill_id}', headers=student)).json()
+            assert [item['id'] for item in ordered_page['items']] == [cid, second_cid]
+            unfiltered = (await client.get('/api/v1/study', headers=student)).json()
+            assert unfiltered['has_sequence'] is False and unfiltered['next_content'] is None
+            assert [item['id'] for item in unfiltered['items']] == [second_cid, cid]
+            await client.put(second_order_url, headers=admin, json={'study_order': None})
+            guide = (await client.get(guide_url, headers=student)).json()
+            assert guide['has_sequence'] is True and guide['next_content'] is None
+            assert (await client.put(order_url + '?extra=1', headers=admin, json={'study_order': 1})).status_code == 422
+            practice_url = f'/api/v1/study/{cid}/practice'
+            assert (await client.get(practice_url, headers=student)).json() is None
+            assert (await client.get(practice_url)).status_code == 401
+            assert (await client.put(practice_url, headers=student, json={'challenge_id': None})).status_code == 403
+            for invalid in ({}, {'challenge_id': True}, {'challenge_id': 0}, {'challenge_id': '1'}, {'challenge_id': None, 'score': 1}):
+                assert (await client.put(practice_url, headers=admin, json=invalid)).status_code == 422
+            assert (await client.get(practice_url + '?extra=1', headers=admin)).status_code == 422
+            challenge_payload = dict(title='Prática', description='Explique a soma.', challenge_type='CODE',
+                difficulty='EASY', difficulty_score=100, estimated_minutes=10,
+                skills=[{'skill_id': skill_id, 'weight': 100}], is_active=True)
+            response = await client.post('/api/v1/challenges', headers=admin, json=challenge_payload)
+            assert response.status_code == 201
+            challenge_id = response.json()['id']
+            selected = await client.put(practice_url, headers=admin, json={'challenge_id': challenge_id})
+            assert selected.status_code == 200 and selected.json()['id'] == challenge_id
+            assert selected.headers['cache-control'] == 'no-store'
+            assert (await client.put(practice_url, headers=admin, json={'challenge_id': challenge_id})).json() == selected.json()
+            assert (await client.get(practice_url, headers=student)).json()['id'] == challenge_id
+            assert (await client.put(practice_url, headers=admin, json={'challenge_id': 2147483647})).status_code == 409
+            assert (await client.get(practice_url, headers=student)).json()['id'] == challenge_id
+            await client.patch(f'/api/v1/challenges/{challenge_id}', headers=admin, json={'is_active': False})
+            for actor in (student, admin):
+                assert (await client.get(practice_url, headers=actor)).json() is None
+            assert (await client.put(practice_url, headers=admin, json={'challenge_id': challenge_id})).status_code == 409
+            with Session(engine) as session:
+                second = Skill(name='SQL', slug='sql', category_id=session.get(Skill, skill_id).category_id)
+                session.add(second); session.commit(); second_id = second.id
+            await client.patch(f'/api/v1/challenges/{challenge_id}', headers=admin,
+                json={'is_active': True, 'skills': [{'skill_id': second_id, 'weight': 100}]})
+            assert (await client.get(practice_url, headers=student)).json() is None
+            assert (await client.put(practice_url, headers=admin, json={'challenge_id': challenge_id})).status_code == 409
+            await client.patch(f'/api/v1/challenges/{challenge_id}', headers=admin,
+                json={'skills': [{'skill_id': skill_id, 'weight': 50}, {'skill_id': second_id, 'weight': 50}]})
+            with Session(engine) as session:
+                session.get(Skill, second_id).is_active = False; session.commit()
+            assert (await client.get(practice_url, headers=student)).json() is None
+            assert (await client.put(practice_url, headers=admin, json={'challenge_id': challenge_id})).status_code == 409
+            assert (await client.put(practice_url, headers=admin, json={'challenge_id': None})).json() is None
+            assert (await client.put(practice_url, headers=admin, json={'challenge_id': None})).status_code == 200
             with Session(engine) as session:
                 assert session.scalar(select(func.count()).select_from(StudyCompletion)) == 1
                 assert session.scalar(select(func.count()).select_from(UserSkill)) == 0
@@ -79,5 +147,10 @@ async def test_study_access_and_completion(migrated_database, monkeypatch):
             assert (await client.get(f'/api/v1/study/{cid}', headers=student)).status_code == 404
             assert (await client.put(f'/api/v1/study/{cid}/completion', headers=other)).status_code == 404
             assert (await client.post('/api/v1/study', headers=admin, json=payload)).status_code == 403
+            assert (await client.put(practice_url, headers=admin, json={'challenge_id': None})).status_code == 403
+            assert (await client.get(practice_url, headers=student)).status_code == 404
+            assert (await client.put(order_url, headers=admin, json={'study_order': 1})).status_code == 403
+            hidden = (await client.get(guide_url, headers=student)).json()
+            assert hidden['has_sequence'] is False and hidden['next_content'] is None
     finally:
         app.dependency_overrides.clear()

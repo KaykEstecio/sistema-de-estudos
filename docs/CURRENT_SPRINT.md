@@ -1,6 +1,72 @@
-﻿# CodeTrack — Current Sprint
+# CodeTrack — Current Sprint
 
 ## Sprint atual
+
+SPRINT 12E — ORIENTAÇÃO DA LEITURA
+
+Continuação autorizada em 07/10/2026: sequência editorial opcional por skill,
+primeira leitura pendente e configuração ADMIN. Contrato: [STUDY_GUIDANCE.md](STUDY_GUIDANCE.md).
+
+- [x] S12E-T01 — recorte e contrato definidos.
+- [x] S12E-T02 — persistência, API e interface.
+- [x] S12E-T03 — ordenar catálogo local e validar.
+
+Entregue: dez aulas em cinco sequências editoriais. Migration 0011 aplicada
+localmente, Alembic check sem diferenças. Build/tipos, 341 testes backend e 19 de
+navegador aprovados. Captura mobile inspecionada e cleanup confirmado.
+Próxima tarefa: validar a orientação no piloto com alunos antes de definir
+verificações curtas de compreensão. Sem mudança da política de progresso,
+trilhas obrigatórias ou expansão de conteúdo. Mudanças ainda sem novo commit.
+
+## Histórico da Sprint 12D — orientação da prática
+
+Autorizada em 07/10/2026: atacar as dificuldades identificadas sem desviar do
+foco em skills. Primeiro recorte: prática específica por aula, escolhida pelo
+ADMIN, com validação no backend. [Plano e contrato](LEARNING_IMPROVEMENTS.md).
+
+- [x] S12D-T01 — prioridades e contrato definidos.
+- [x] S12D-T02 — vínculo persistido, API e interface administrativa/aluno.
+- [x] S12D-T03 — associar o catálogo local e validar fluxo e permissões.
+
+Entregue: dez aulas locais vinculadas aos seus desafios. Migration 0010 aplicada;
+Alembic check sem diferenças. Build/tipos, 341 testes backend completos e 18 de
+navegador aprovados; captura mobile inspecionada, cleanup confirmado.
+Próxima tarefa: observar a clareza do próximo passo no piloto e definir o recorte
+de orientação inicial por skill. Sem execução automática, gamificação ou mudança
+da política de progresso. Demais melhorias são FUTURO. Alterações sem novo commit.
+
+## Histórico da Sprint 12C — da leitura à prática
+
+Autorizada em 07/10/2026: desafios avaliáveis derivados das dez aulas, critérios
+públicos de revisão manual e acesso pelo detalhe da aula. Contrato:
+[STUDY_PRACTICE.md](STUDY_PRACTICE.md). Stack e regras de progresso preservadas.
+
+- [x] S12C-T01 — recorte e critérios documentados.
+- [x] S12C-T02 — lote editorial de dez desafios e publicação local.
+- [x] S12C-T03 — acesso à prática por habilidade na leitura.
+- [x] S12C-T04 — validação técnica e registro de limites pedagógicos.
+- [x] S12C-T05 — roteiro e registro de piloto com aluno preparados em
+  [LEARNING_PILOT.md](LEARNING_PILOT.md).
+- [ ] S12C-T06 — realizar piloto com aluno real e consolidar achados anônimos.
+
+Skills ativas: documentação, testes e segurança locais; React best practices.
+Validação: build/tipos, 17 testes de navegador e casos editoriais aprovados.
+Sem mudança de backend ou migration; suíte backend completa não foi repetida.
+Próxima tarefa: executar o [piloto](LEARNING_PILOT.md) e registrar dificuldades; a
+verificação técnica do percurso está concluída. Mudanças S12C ainda sem commit.
+Deploy permanece adiado por decisão do usuário.
+
+## Estado consolidado
+
+Sprints 12A e 12B entregues no commit 4d7d03a, já presente no GitHub.
+CI Quality aprovada em 07/10/2026:
+[execução 37633513444](https://github.com/KaykEstecio/sistema-de-estudos/actions/runs/37633513444).
+Banco local: dez aulas e dez desafios publicados. Contas e dados locais não são
+transportados pelo commit. As anotações abaixo são históricas; referências à
+ausência de commit, ADMIN ou conteúdo descrevem cada registro, não o estado atual.
+
+
+## Histórico da Sprint 12B
 
 SPRINT 12B — ESTUDO POR HABILIDADE
 
@@ -192,7 +258,7 @@ Regras de negócio nos services; repositories não fazem commit.
 - [x] Automação e comandos locais atualizados, sem deploy.
 - [x] Validação final e fechamento registrados.
 
-## Próxima tarefa
+## Próxima tarefa historica
 
 S12-T02 — contrato de deploy conforme DEPLOY_PLAN.md. Sprint 11 encerrada;
 Sprint 12 em planejamento. CI remota precisa ser conferida após publicação,

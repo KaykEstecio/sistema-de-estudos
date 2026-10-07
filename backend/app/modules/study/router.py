@@ -6,6 +6,9 @@ from app.modules.users.dependencies import get_current_user
 from app.modules.users.models import User
 from app.modules.study.service import StudyService
 from app.modules.study.schemas import StudyCreate, StudyQuery, StudyRead, StudyPage
+from app.modules.study.schemas import StudyPracticeInput
+from app.modules.study.schemas import StudyOrderInput
+from app.modules.challenges.schemas import ChallengeRead
 from pydantic import BaseModel, ConfigDict
 
 
@@ -45,3 +48,18 @@ def get(id: Id, user: UserDep, session: SessionDep) -> StudyRead:
 @router.put('/{id}/completion', response_model=StudyRead, dependencies=[Depends(query_and_cache)])
 def complete(id: Id, user: UserDep, session: SessionDep) -> StudyRead:
     return StudyService(session).complete(user, id)
+
+
+@router.get('/{id}/practice', response_model=ChallengeRead | None, dependencies=[Depends(query_and_cache)])
+def practice(id: Id, user: UserDep, session: SessionDep) -> ChallengeRead | None:
+    return StudyService(session).practice(user, id)
+
+
+@router.put('/{id}/practice', response_model=ChallengeRead | None, dependencies=[Depends(query_and_cache)])
+def set_practice(id: Id, data: StudyPracticeInput, user: UserDep, session: SessionDep) -> ChallengeRead | None:
+    return StudyService(session).set_practice(user, id, data.challenge_id)
+
+
+@router.put('/{id}/order', response_model=StudyRead, dependencies=[Depends(query_and_cache)])
+def set_order(id: Id, data: StudyOrderInput, user: UserDep, session: SessionDep) -> StudyRead:
+    return StudyService(session).set_order(user, id, data.study_order)
